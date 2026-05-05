@@ -50,4 +50,36 @@ public class Seat {
     public void setBooked(boolean booked) {
         isBooked = booked;
     }
+
+    @Override
+    public String toString() {
+        return "Seat{" +
+                "id=" + id +
+                ", scheduleId=" + scheduleId +
+                ", seatNumber=" + seatNumber +
+                ", isBooked=" + isBooked +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Seat seat = (Seat) o;
+
+        if (id != seat.id) return false;
+        if (scheduleId != seat.scheduleId) return false;
+        if (seatNumber != seat.seatNumber) return false;
+        return isBooked == seat.isBooked;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id;
+        result = 31 * result + scheduleId;
+        result = 31 * result + seatNumber;
+        result = 31 * result + (isBooked ? 1 : 0);
+        return result;
+    }
 }

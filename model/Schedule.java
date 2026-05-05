@@ -50,4 +50,36 @@ public class Schedule {
     public void setStudio(String studio) {
         this.studio = studio;
     }
+
+    @Override
+    public String toString() {
+        return "Schedule{" +
+                "id=" + id +
+                ", film=" + film +
+                ", time='" + time + '\'' +
+                ", studio='" + studio + '\'' +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Schedule schedule = (Schedule) o;
+
+        if (id != schedule.id) return false;
+        if (film != null ? !film.equals(schedule.film) : schedule.film != null) return false;
+        if (time != null ? !time.equals(schedule.time) : schedule.time != null) return false;
+        return studio != null ? studio.equals(schedule.studio) : schedule.studio == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id;
+        result = 31 * result + (film != null ? film.hashCode() : 0);
+        result = 31 * result + (time != null ? time.hashCode() : 0);
+        result = 31 * result + (studio != null ? studio.hashCode() : 0);
+        return result;
+    }
 }
