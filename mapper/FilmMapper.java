@@ -15,9 +15,9 @@ public class FilmMapper {
         try (Connection conn = Database.connect()) {
             String sql = "INSERT INTO film(title, genre, duration) VALUES (?, ?, ?)";
             PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setString(1, film.title);
-            stmt.setString(2, film.genre);
-            stmt.setInt(3, film.duration);
+            stmt.setString(1, film.getTitle());
+            stmt.setString(2, film.getGenre());
+            stmt.setInt(3, film.getDuration());
             stmt.executeUpdate();
         } catch (Exception e) {
             System.out.println("Insert film gagal");
@@ -31,10 +31,10 @@ public class FilmMapper {
 
             while (rs.next()) {
                 Film f = new Film();
-                f.id = rs.getInt("id");
-                f.title = rs.getString("title");
-                f.genre = rs.getString("genre");
-                f.duration = rs.getInt("duration");
+                f.setId(rs.getInt("id"));
+                f.setTitle(rs.getString("title"));
+                f.setGenre(rs.getString("genre"));
+                f.setDuration(rs.getInt("duration"));
                 list.add(f);
             }
         } catch (Exception e) {
