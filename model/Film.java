@@ -6,11 +6,9 @@ public class Film {
     private String genre;
     private int duration;
 
-    // Constructor kosong
     public Film() {
     }
 
-    // Constructor dengan semua parameter
     public Film(int id, String title, String genre, int duration) {
         this.id = id;
         this.title = title;
@@ -18,7 +16,6 @@ public class Film {
         this.duration = duration;
     }
 
-    // Getter dan Setter
     public int getId() {
         return id;
     }

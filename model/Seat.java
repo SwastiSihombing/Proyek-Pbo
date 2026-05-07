@@ -6,11 +6,9 @@ public class Seat {
     private int seatNumber;
     private boolean isBooked;
 
-    // Constructor kosong
     public Seat() {
     }
 
-    // Constructor dengan semua parameter
     public Seat(int id, int scheduleId, int seatNumber, boolean isBooked) {
         this.id = id;
         this.scheduleId = scheduleId;
@@ -18,7 +16,6 @@ public class Seat {
         this.isBooked = isBooked;
     }
 
-    // Getter dan Setter
     public int getId() {
         return id;
     }

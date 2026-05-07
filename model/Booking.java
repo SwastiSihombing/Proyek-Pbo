@@ -6,11 +6,9 @@ public class Booking {
     private Schedule schedule;
     private int seatNumber;
 
-    // Constructor kosong
     public Booking() {
     }
 
-    // Constructor dengan semua parameter
     public Booking(int id, String customerName, Schedule schedule, int seatNumber) {
         this.id = id;
         this.customerName = customerName;
@@ -18,7 +16,6 @@ public class Booking {
         this.seatNumber = seatNumber;
     }
 
-    // Getter dan Setter
     public int getId() {
         return id;
     }

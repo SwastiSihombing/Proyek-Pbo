@@ -5,18 +5,15 @@ public abstract class User {
     protected String username;
     protected String password;
 
-    // Constructor kosong
     public User() {
     }
 
-    // Constructor dengan semua parameter
     public User(int id, String username, String password) {
         this.id = id;
         this.username = username;
         this.password = password;
     }
 
-    // Getter dan Setter
     public int getId() {
         return id;
     }

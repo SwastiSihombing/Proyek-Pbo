@@ -6,11 +6,9 @@ public class Schedule {
     private String time;
     private String studio;
 
-    // Constructor kosong
     public Schedule() {
     }
 
-    // Constructor dengan semua parameter
     public Schedule(int id, Film film, String time, String studio) {
         this.id = id;
         this.film = film;
@@ -18,7 +16,6 @@ public class Schedule {
         this.studio = studio;
     }
 
-    // Getter dan Setter
     public int getId() {
         return id;
     }
