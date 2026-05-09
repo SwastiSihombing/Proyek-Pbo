@@ -8,13 +8,16 @@ import mapper.BookingMapper;
 import mapper.FilmMapper;
 import mapper.ScheduleMapper;
 import mapper.SeatMapper;
+import mapper.PaymentMapper;
 import model.Film;
+import model.Payment;
 
 public class Main {
 
     public static void main(String[] args) {
 
         // Inisialisasi database
+        Database.init();
         Database.connect();
 
         Scanner input = new Scanner(System.in);
@@ -23,6 +26,7 @@ public class Main {
         ScheduleMapper scheduleMapper = new ScheduleMapper();
         BookingMapper bookingMapper = new BookingMapper();
         SeatMapper seatMapper = new SeatMapper();
+        PaymentMapper paymentMapper = new PaymentMapper();
 
         int pilih;
 
@@ -31,8 +35,9 @@ public class Main {
             System.out.println("1. Admin - Tambah Film");
             System.out.println("2. Admin - Tambah Jadwal");
             System.out.println("3. Customer - Lihat Film & Jadwal");
-            System.out.println("4. Customer - Pesan Kursi");
-            System.out.println("5. Keluar");
+            System.out.println("4. Customer - Pesan Kursi & Bayar");
+            System.out.println("5. Customer - Lihat Riwayat Pembayaran");
+            System.out.println("6. Keluar");
             System.out.print("Pilih menu: ");
 
             pilih = input.nextInt();
@@ -110,12 +115,64 @@ public class Main {
                     System.out.print("Nomor Kursi: ");
                     String seat = input.nextLine();
 
-                    bookingMapper.insert(customer, scheduleIdBook, seat);
+                    int bookingId = bookingMapper.insert(customer, scheduleIdBook, seat);
+                    System.out.println("Booking berhasil! ID Booking: " + bookingId);
 
-                    System.out.println("Booking berhasil!");
+                    // Proses Pembayaran
+                    System.out.println("\n=== PROSES PEMBAYARAN ===");
+                    System.out.print("Harga Tiket (Rp): ");
+                    double amount = input.nextDouble();
+                    input.nextLine();
+
+                    System.out.println("Metode Pembayaran:");
+                    System.out.println("1. CASH");
+                    System.out.println("2. CARD");
+                    System.out.println("3. TRANSFER");
+                    System.out.print("Pilih metode (1-3): ");
+                    int methodChoice = input.nextInt();
+                    input.nextLine();
+
+                    String paymentMethod = "";
+                    switch (methodChoice) {
+                        case 1:
+                            paymentMethod = "CASH";
+                            break;
+                        case 2:
+                            paymentMethod = "CARD";
+                            break;
+                        case 3:
+                            paymentMethod = "TRANSFER";
+                            break;
+                        default:
+                            System.out.println("Metode tidak valid!");
+                            paymentMethod = "CASH";
+                    }
+
+                    Payment payment = new Payment(bookingId, amount, paymentMethod);
+                    int paymentId = paymentMapper.insert(payment);
+
+                    if (paymentId > 0) {
+                        System.out.print("\nProses pembayaran... ");
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        paymentMapper.updateStatus(paymentId, "COMPLETED");
+                        System.out.println("BERHASIL!");
+                        System.out.println("ID Pembayaran: " + paymentId);
+                        System.out.println("Status: COMPLETED");
+                    } else {
+                        System.out.println("Pembayaran gagal!");
+                    }
                     break;
 
                 case 5:
+                    // Lihat Riwayat Pembayaran
+                    paymentMapper.showPaymentHistory();
+                    break;
+
+                case 6:
                     System.out.println("Terima kasih!");
                     break;
 
@@ -123,7 +180,7 @@ public class Main {
                     System.out.println("Menu tidak tersedia!");
             }
 
-        } while (pilih != 5);
+        } while (pilih != 6);
 
         input.close();
     }

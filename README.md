@@ -71,6 +71,27 @@ Proyek-Pbo/
 
 ---
 
+## ⚡ Quick Start: Menggunakan Makefile
+
+Untuk mempermudah proses kompilasi dan menjalankan program:
+- **`Makefile`** - Untuk Linux/macOS/Windows (dengan Make installed)
+
+### 📝 **Menggunakan Makefile**
+
+**Perintah:**
+```bash
+# Kompilasi semua file Java
+make compile
+
+# Kompilasi dan jalankan program
+make run
+
+# Bersihkan file kompilasi
+make clean
+```
+
+---
+
 ## 🚀 Panduan Instalasi & Menjalankan Program
 
 ### Prasyarat:
@@ -90,28 +111,12 @@ Proyek-Pbo/
 ├── model/
 ├── mapper/
 ├── main/
+├── bin/                        ← Folder output kompilasi (auto-created)
 ├── sqlite-jdbc-3.45.0.0.jar    ← File JDBC disimpan di sini
+├── Makefile
 ├── README.md
-└── cinema.db (akan terbuat otomatis)
+└── cinema.db (akan terbuat otomatis saat run)
 ```
-
-### Langkah-Langkah Menjalankan:
-
-**1. Buka Terminal**
-Buka Command Prompt (CMD) atau PowerShell, lalu navigasikan ke folder proyek ini.
-```powershell
-cd "c:\Users\swast\OneDrive\Documents\Pembelajaran Sistem Informasi 1-8\SEMESTER 4\PBO\Mini Project\SmartCampus\Proyek-Pbo"
-```
-
-**2. Kompilasi Semua File Java**
-Kompilasi semua file Java dengan SQLite JDBC driver dalam classpath:
-
-**Windows (Command Prompt / PowerShell):**
-```powershell
-javac -cp sqlite-jdbc-3.45.0.0.jar database/Database.java model/User.java model/Admin.java model/Customer.java model/Film.java model/Schedule.java model/Seat.java model/Booking.java mapper/FilmMapper.java mapper/ScheduleMapper.java mapper/SeatMapper.java mapper/BookingMapper.java main/Main.java
-```
-
-Atau gunakan perintah singkat:
 ```powershell
 javac -cp sqlite-jdbc-3.45.0.0.jar database/Database.java model/*.java mapper/*.java main/Main.java
 ```
@@ -120,15 +125,11 @@ javac -cp sqlite-jdbc-3.45.0.0.jar database/Database.java model/*.java mapper/*.
 Jalankan program dengan SQLite driver dalam classpath:
 
 **Windows (Command Prompt / PowerShell):**
-```powershell
-java -cp .;sqlite-jdbc-3.45.0.0.jar main.Main
 ```
-
-> **Catatan**: Gunakan `;` (semicolon) untuk Windows, `:` (colon) untuk Linux/Mac
 
 ---
 
-## 💡 Penjelasan Struktur Kompilasi
+## 💡 Struktur Package & Urutan Kompilasi
 
 | Package | Deskripsi | Urutan Kompilasi |
 |---------|-----------|------------------|
@@ -137,24 +138,32 @@ java -cp .;sqlite-jdbc-3.45.0.0.jar main.Main
 | `mapper/` | Menangani query SQL ke database | 3️⃣ Ketiga (menggunakan model) |
 | `main/` | Entry point aplikasi (CLI Menu) | 4️⃣ Keempat (menggunakan semua mapper) |
 
-### Menu Aplikasi:
-Setelah menjalankan aplikasi, akan muncul menu utama:
+---
+
+## 📋 Menu Aplikasi
+
+Setelah menjalankan aplikasi dengan `build.bat run` atau `make run`, akan muncul menu utama:
 ```
 === SISTEM MANAJEMEN BIOSKOP ===
 1. Admin - Tambah Film
 2. Admin - Tambah Jadwal
 3. Customer - Lihat Film & Jadwal
-4. Customer - Pesan Kursi
-5. Keluar
+4. Customer - Pesan Kursi & Bayar
+5. Customer - Lihat Riwayat Pembayaran
+6. Keluar
 ```
 
-**Menu Penjelasan:**
-- **Menu 1 (Tambah Film)**: Admin memasukkan judul, genre, dan durasi film baru
-- **Menu 2 (Tambah Jadwal)**: Admin membuat jadwal tayang untuk film tertentu, sistem auto-generate 15 kursi (A1-C5)
-- **Menu 3 (Lihat Film & Jadwal)**: Customer melihat daftar semua film dan jadwal tayang yang tersedia
-- **Menu 4 (Pesan Kursi)**: Customer memilih jadwal dan kursi untuk dipesan
+**Penjelasan Menu:**
+- **Menu 1**: Admin memasukkan judul, genre, dan durasi film baru
+- **Menu 2**: Admin membuat jadwal tayang untuk film tertentu, sistem auto-generate 15 kursi (A1-C5)
+- **Menu 3**: Customer melihat daftar semua film dan jadwal tayang yang tersedia
+- **Menu 4**: Customer memilih jadwal, kursi, dan melakukan pembayaran
+- **Menu 5**: Customer melihat riwayat pembayaran mereka
+- **Menu 6**: Keluar dari aplikasi
 
-### 🛠️ Membuka & Melihat Database dengan DB Browser for SQLite
+---
+
+## 🛠️ Membuka & Melihat Database dengan DB Browser for SQLite
 
 **DB Browser for SQLite** adalah aplikasi GUI gratis untuk membuka, melihat, dan mengelola database SQLite secara visual. Sangat berguna untuk verifikasi data!
 
@@ -173,14 +182,14 @@ Setelah menjalankan aplikasi, akan muncul menu utama:
 
 4. **Lihat Data**
    - Pilih tab **"Browse Data"** di bagian atas
-   - Pilih tabel dari dropdown: `film`, `schedule`, `seat`, atau `booking`
+   - Pilih tabel dari dropdown: `film`, `schedule`, `seat`, `booking`, atau `payments`
    - Semua data akan ditampilkan dalam format tabel seperti Excel
 
-#### Contoh Tampilan Tabel:
-| Fitur | Keterangan |
+#### Tabel-Tabel di Database:
+| Tabel | Keterangan |
 |-------|-----------|
-| **film** | Berisi judul, genre, durasi film yang ditambahkan Admin |
-| **schedule** | Berisi jadwal tayang (film_id, jam, studio) |
+| **film** | Judul, genre, durasi film yang ditambahkan Admin |
+| **schedule** | Jadwal tayang (film_id, jam, studio) |
 | **seat** | Berisi daftar kursi per jadwal (A1-C5) dan status booking |
 | **booking** | Berisi data pemesanan pelanggan (nama, jadwal, kursi) |
 
