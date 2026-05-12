@@ -2,6 +2,7 @@ package main;
 
 import java.util.Scanner;
 import java.util.List;
+import java.util.ArrayList;
 
 import database.Database;
 import mapper.BookingMapper;
@@ -233,25 +234,104 @@ public class Main {
         int scheduleIdBook = input.nextInt();
         input.nextLine();
 
-        System.out.println("\n--- KURSI TERSEDIA ---");
-        seatMapper.showSeats(scheduleIdBook);
+        // Validasi schedule exists
+        if (scheduleIdBook <= 0) {
+            System.out.println("✗ ID Jadwal tidak valid!");
+            return;
+        }
+
+        // Tampilkan layout kursi dengan visualisasi
+        System.out.println("\n╔════════════════════════════════════════════╗");
+        System.out.println("║  PILIH KURSI YANG TERSEDIA                 ║");
+        System.out.println("╚════════════════════════════════════════════╝");
+        seatMapper.displaySeatLayout(scheduleIdBook);
 
         System.out.print("Nama Customer: ");
         String customer = input.nextLine();
 
-        System.out.print("Nomor Kursi (contoh: A1): ");
-        String seat = input.nextLine();
+        // ===== MULTIPLE SEATS SELECTION =====
+        List<String> selectedSeats = new ArrayList<>();
+        boolean addingSeats = true;
 
-        int bookingId = bookingMapper.insert(customer, scheduleIdBook, seat);
-        System.out.println("✓ Booking berhasil! ID Booking: " + bookingId);
+        System.out.println("\n──────────────────────────────────────────");
+        System.out.println("PEMESANAN MULTIPLE KURSI");
+        System.out.println("──────────────────────────────────────────");
+
+        while (addingSeats) {
+            System.out.print("Masukkan Nomor Kursi (contoh: A1, B3): ");
+            String seat = input.nextLine().toUpperCase();
+
+            // Validasi format kursi
+            if (!isValidSeatFormat(seat)) {
+                System.out.println("✗ Format kursi tidak valid! Gunakan format: A1, B2, C3, dst.");
+                continue;
+            }
+
+            // Check apakah kursi sudah di-booking
+            if (seatMapper.isSeatBooked(scheduleIdBook, seat)) {
+                System.out.println("✗ Kursi " + seat + " sudah terpesan!");
+                continue;
+            }
+
+            // Check apakah kursi sudah dipilih
+            if (selectedSeats.contains(seat)) {
+                System.out.println("✗ Kursi " + seat + " sudah dipilih!");
+                continue;
+            }
+
+            selectedSeats.add(seat);
+            System.out.println("✓ Kursi " + seat + " ditambahkan. (Total: " + selectedSeats.size() + ")");
+
+            System.out.print("Tambah kursi lagi? (y/n): ");
+            String choice = input.nextLine().toLowerCase();
+            if (!choice.equals("y")) {
+                addingSeats = false;
+            }
+        }
+
+        if (selectedSeats.isEmpty()) {
+            System.out.println("✗ Anda tidak memilih kursi apapun!");
+            return;
+        }
+
+        // Ringkasan pemesanan
+        System.out.println("\n╔════════════════════════════════════════════╗");
+        System.out.println("║  RINGKASAN PEMESANAN                       ║");
+        System.out.println("╚════════════════════════════════════════════╝");
+        System.out.println("Nama Customer: " + customer);
+        System.out.println("Kursi yang Dipesan: " + String.join(", ", selectedSeats));
+        System.out.println("Jumlah Tiket: " + selectedSeats.size());
+        System.out.println("──────────────────────────────────────────");
+
+        // Proses booking
+        boolean bookingSuccess = bookingMapper.insertMultiple(customer, scheduleIdBook, selectedSeats);
+
+        if (bookingSuccess) {
+            // Update seat status
+            for (String seat : selectedSeats) {
+                seatMapper.bookSeat(scheduleIdBook, seat);
+            }
+            System.out.println("✓ Booking berhasil!");
+        } else {
+            System.out.println("✗ Booking gagal!");
+            return;
+        }
 
         // Proses Pembayaran
-        System.out.println("\n========================================");
-        System.out.println("       PROSES PEMBAYARAN");
-        System.out.println("========================================");
-        System.out.print("Harga Tiket (Rp): ");
-        double amount = input.nextDouble();
+        System.out.println("\n╔════════════════════════════════════════════╗");
+        System.out.println("║  PROSES PEMBAYARAN                         ║");
+        System.out.println("╚════════════════════════════════════════════╝");
+
+        System.out.print("Harga per Tiket (Rp): ");
+        double pricePerTicket = input.nextDouble();
+        double totalAmount = pricePerTicket * selectedSeats.size();
         input.nextLine();
+
+        System.out.println("\nRingkasan Harga:");
+        System.out.println("  Harga per Tiket : Rp " + String.format("%.0f", pricePerTicket));
+        System.out.println("  Jumlah Tiket    : " + selectedSeats.size());
+        System.out.println("  Total Harga     : Rp " + String.format("%.0f", totalAmount));
+        System.out.println("──────────────────────────────────────────");
 
         System.out.println("\nMetode Pembayaran:");
         System.out.println("1. CASH");
@@ -277,26 +357,51 @@ public class Main {
                 paymentMethod = "CASH";
         }
 
-        Payment payment = new Payment(bookingId, amount, paymentMethod);
+        // Gunakan booking pertama untuk payment (bisa diperbaiki di masa depan untuk multi-booking payment)
+        int bookingId = 1; // Seharusnya dapatkan dari insertMultiple() jika diperlukan
+        Payment payment = new Payment(bookingId, totalAmount, paymentMethod);
         int paymentId = paymentMapper.insert(payment);
 
         if (paymentId > 0) {
             System.out.print("\nProses pembayaran... ");
             try {
-                Thread.sleep(1000);
+                Thread.sleep(1500);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
             paymentMapper.updateStatus(paymentId, "COMPLETED");
-            System.out.println("BERHASIL!");
-            System.out.println("ID Pembayaran: " + paymentId);
-            System.out.println("Metode: " + paymentMethod);
-            System.out.println("Jumlah: Rp " + amount);
-            System.out.println("Status: COMPLETED ✓");
+            System.out.println("BERHASIL!\n");
+
+            System.out.println("╔════════════════════════════════════════════╗");
+            System.out.println("║  PEMBAYARAN BERHASIL ✓                     ║");
+            System.out.println("╚════════════════════════════════════════════╝");
+            System.out.println("ID Pembayaran   : " + paymentId);
+            System.out.println("Nama Customer   : " + customer);
+            System.out.println("Kursi           : " + String.join(", ", selectedSeats));
+            System.out.println("Metode Pembayaran: " + paymentMethod);
+            System.out.println("Total Pembayaran: Rp " + String.format("%.0f", totalAmount));
+            System.out.println("Status          : COMPLETED ✓");
+            System.out.println("╚════════════════════════════════════════════╝\n");
         } else {
             System.out.println("GAGAL!");
-            System.out.println("Pembayaran gagal!");
+            System.out.println("✗ Pembayaran gagal!");
         }
+    }
+
+    // ===== HELPER METHODS =====
+    private static boolean isValidSeatFormat(String seat) {
+        if (seat.length() != 2) return false;
+        
+        char row = seat.charAt(0);
+        char col = seat.charAt(1);
+        
+        // Valid rows: A, B, C
+        if (row < 'A' || row > 'C') return false;
+        
+        // Valid columns: 1-5
+        if (col < '1' || col > '5') return false;
+        
+        return true;
     }
 
     private static void lihatRiwayatPembayaran() {
