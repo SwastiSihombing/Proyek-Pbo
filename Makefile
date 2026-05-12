@@ -1,9 +1,9 @@
 compile :
 	mkdir -p bin
-	javac -d bin database/*.java model/*.java mapper/*.java main/*.java
+	javac -d bin -cp "lib/*" database/*.java model/*.java mapper/*.java main/*.java
 
 run : compile
-	java -cp bin main.Main
+	java -cp "bin;lib/*" main.Main
 
 clean :
 	rm -rf bin
