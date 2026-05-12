@@ -71,58 +71,131 @@ Proyek-Pbo/
 
 ---
 
+## ⚡ Quick Start: Menggunakan Makefile
+
+Untuk mempermudah proses kompilasi dan menjalankan program:
+- **`Makefile`** - Untuk Linux/macOS/Windows (dengan Make installed)
+
+### 📝 **Menggunakan Makefile**
+
+**Perintah:**
+```bash
+# Kompilasi semua file Java
+make compile
+
+# Kompilasi dan jalankan program
+make run
+
+# Bersihkan file kompilasi
+make clean
+```
+
+---
+
 ## 🚀 Panduan Instalasi & Menjalankan Program
 
 ### Prasyarat:
 - Pastikan **Java JDK (Java Development Kit)** sudah terinstal di komputer/laptop Anda (Minimal Java 8, disarankan Java 11 atau ke atas).
-- Terminal (Command Prompt / PowerShell / Git Bash).
-SQLite JDBC Driver harus tersedia di classpath.
+- **SQLite JDBC Driver** - Download file JAR dari [https://github.com/xerial/sqlite-jdbc/releases](https://github.com/xerial/sqlite-jdbc/releases)
+  - Pilih versi terbaru (contoh: `sqlite-jdbc-3.45.0.0.jar`)
+  - Letakkan file JAR tersebut di folder proyek (di root folder `Proyek-Pbo`)
 - Terminal (Command Prompt / PowerShell / Git Bash).
 
-### Langkah-Langkah Menjalankan:
-
-**1. Buka Terminal**
-Buka Command Prompt (CMD) atau PowerShell, lalu navigasikan ke folder proyek ini.
-```powershell
-cd "c:\Users\swast\OneDrive\Documents\Pembelajaran Sistem Informasi 1-8\SEMESTER 4\PBO\Mini Project\SmartCampus\Proyek-Pbo"
+#### 🔧 Setup SQLite JDBC Driver:
+1. **Download** file JAR terbaru dari: https://github.com/xerial/sqlite-jdbc/releases
+2. **Simpan** file JAR ke folder proyek (misal: `Proyek-Pbo/sqlite-jdbc-3.45.0.0.jar`)
+3. **Struktur folder** akan terlihat seperti:
 ```
-
-**2. Kompilasi Semua File Java**
+Proyek-Pbo/
+├── database/
+├── model/
+├── mapper/
+├── main/
+├── bin/                        ← Folder output kompilasi (auto-created)
+├── sqlite-jdbc-3.45.0.0.jar    ← File JDBC disimpan di sini
+├── Makefile
+├── README.md
+└── cinema.db (akan terbuat otomatis saat run)
+```
 ```powershell
-javac database/Database.java model/*.java mapper/*.java main/Main.java
+javac -cp sqlite-jdbc-3.45.0.0.jar database/Database.java model/*.java mapper/*.java main/Main.java
 ```
 
 **3. Jalankan Aplikasi Utama**
-Untuk mengeksekusi program dan masuk ke menu aplikasi:
-```powershell
-java main.Main
+Jalankan program dengan SQLite driver dalam classpath:
+
+**Windows (Command Prompt / PowerShell):**
 ```
 
-### Menu Aplikasi:
-Setelah menjalankan aplikasi, akan muncul menu utama:
+---
+
+## 💡 Struktur Package & Urutan Kompilasi
+
+| Package | Deskripsi | Urutan Kompilasi |
+|---------|-----------|------------------|
+| `database/` | Mengelola koneksi SQLite | 1️⃣ Pertama (no dependencies) |
+| `model/` | Kelas-kelas domain bisnis (Film, Schedule, Booking, Seat, User) | 2️⃣ Kedua (extends User) |
+| `mapper/` | Menangani query SQL ke database | 3️⃣ Ketiga (menggunakan model) |
+| `main/` | Entry point aplikasi (CLI Menu) | 4️⃣ Keempat (menggunakan semua mapper) |
+
+---
+
+## 📋 Menu Aplikasi
+
+Setelah menjalankan aplikasi dengan `build.bat run` atau `make run`, akan muncul menu utama:
 ```
 === SISTEM MANAJEMEN BIOSKOP ===
 1. Admin - Tambah Film
 2. Admin - Tambah Jadwal
 3. Customer - Lihat Film & Jadwal
-4. Customer - Pesan Kursi
-5. Keluar
+4. Customer - Pesan Kursi & Bayar
+5. Customer - Lihat Riwayat Pembayaran
+6. Keluar
 ```
 
-**Menu Penjelasan:**
-- **Menu 1 (Tambah Film)**: Admin memasukkan judul, genre, dan durasi film baru
-- **Menu 2 (Tambah Jadwal)**: Admin membuat jadwal tayang untuk film tertentu, sistem auto-generate 15 kursi (A1-C5)
-- **Menu 3 (Lihat Film & Jadwal)**: Customer melihat daftar semua film dan jadwal tayang yang tersedia
-- **Menu 4 (Pesan Kursi)**: Customer memilih jadwal dan kursi untuk dipesan
+**Penjelasan Menu:**
+- **Menu 1**: Admin memasukkan judul, genre, dan durasi film baru
+- **Menu 2**: Admin membuat jadwal tayang untuk film tertentu, sistem auto-generate 15 kursi (A1-C5)
+- **Menu 3**: Customer melihat daftar semua film dan jadwal tayang yang tersedia
+- **Menu 4**: Customer memilih jadwal, kursi, dan melakukan pembayaran
+- **Menu 5**: Customer melihat riwayat pembayaran mereka
+- **Menu 6**: Keluar dari aplikasi
 
-### 🛠️ Cara Membuka Database dengan DB Browser for SQLite
-File `cinema.db` akan tercipta secara otomatis saat Anda menjalankan aplikasi Java untuk yang pertama kali.
-1. Download dan instal aplikasi gratis **DB Browser for SQLite** (https://sqlitebrowser.org/).
-2. Buka aplikasi DB Browser.
-3. Klik menu **Open Database**.
-4. Cari dan pilih file `cinema.db` yang ada di folder proyek ini.
-5. Pergi ke tab **Browse Data** untuk melihat hasil input, data film, jadwal, dan pemesanan kursi secara visual seperti spreadsheet Excel!
- 
-**(Catatan Penting)**: Jangan lupa menutup DB Browser atau menekan **"Write Changes"** sebelum menjalankan kembali aplikasi Java agar database tidak terkunci.
+---
+
+## 🛠️ Membuka & Melihat Database dengan DB Browser for SQLite
+
+**DB Browser for SQLite** adalah aplikasi GUI gratis untuk membuka, melihat, dan mengelola database SQLite secara visual. Sangat berguna untuk verifikasi data!
+
+#### Langkah Instalasi & Penggunaan:
+1. **Download** aplikasi gratis dari: https://sqlitebrowser.org/dl/
+   - Pilih versi sesuai OS Anda (Windows, macOS, Linux)
+   - Install seperti aplikasi biasa
+
+2. **Buka DB Browser for SQLite**
+
+3. **Buka Database**
+   - Klik menu **File → Open Database**
+   - Navigasi ke folder proyek Anda: `Proyek-Pbo/`
+   - Cari dan pilih file **`cinema.db`** (file ini terbuat otomatis saat menjalankan aplikasi)
+   - Klik **Open**
+
+4. **Lihat Data**
+   - Pilih tab **"Browse Data"** di bagian atas
+   - Pilih tabel dari dropdown: `film`, `schedule`, `seat`, `booking`, atau `payments`
+   - Semua data akan ditampilkan dalam format tabel seperti Excel
+
+#### Tabel-Tabel di Database:
+| Tabel | Keterangan |
+|-------|-----------|
+| **film** | Judul, genre, durasi film yang ditambahkan Admin |
+| **schedule** | Jadwal tayang (film_id, jam, studio) |
+| **seat** | Berisi daftar kursi per jadwal (A1-C5) dan status booking |
+| **booking** | Berisi data pemesanan pelanggan (nama, jadwal, kursi) |
+
+#### ⚠️ PENTING:
+- Tutup DB Browser atau klik **"Write Changes"** sebelum menjalankan aplikasi Java lagi
+- Jika tidak, database mungkin terkunci dan menyebabkan error koneksi
+- Untuk mengedit langsung via DB Browser, gunakan tab **"Edit Pragmas"** atau **"Execute SQL"**
 ---
 *Dibuat untuk keperluan pemenuhan Mini Proyek Sistem Basis Data / Pemrograman Berorientasi Objek.*

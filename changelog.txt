@@ -1,0 +1,27 @@
+# CHANGELOG
+
+## [1.0.0] - 2026-05-12
+
+### Added
+- Initial project setup for Sistem Manajemen Bioskop (Cinema Management System)
+- Database layer with SQLite integration
+- User authentication system (Admin and Customer roles)
+- Film management module
+- Schedule management for film screenings
+- Seat booking system
+- Payment processing module
+- Mapper classes for database operations:
+  - BookingMapper
+  - FilmMapper
+  - PaymentMapper
+  - ScheduleMapper
+  - SeatMapper
+- Build system with Makefile
+
+### Fixed
+- SQLite JDBC Driver classpath configuration in Makefile
+
+### Notes
+- Project uses SQLite for database storage
+- To run: make run
+- Ensure lib/sqlite-jdbc.jar is present before compilation
