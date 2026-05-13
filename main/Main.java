@@ -329,11 +329,15 @@ public class Main {
         System.out.println("  Total Harga     : Rp " + String.format("%.0f", totalAmount));
         System.out.println("──────────────────────────────────────────");
 
+        // ==========================================
+        // PERUBAHAN METODE PEMBAYARAN DITAMBAHKAN DI SINI
+        // ==========================================
         System.out.println("\nMetode Pembayaran:");
         System.out.println("1. CASH");
         System.out.println("2. CARD");
         System.out.println("3. TRANSFER");
-        System.out.print("Pilih metode (1-3): ");
+        System.out.println("4. QRIS / E-WALLET"); // <-- Opsi QRIS
+        System.out.print("Pilih metode (1-4): "); // <-- Pilihan diupdate jadi 1-4
         int methodChoice = input.nextInt();
         input.nextLine();
 
@@ -348,10 +352,28 @@ public class Main {
             case 3:
                 paymentMethod = "TRANSFER";
                 break;
+            case 4: 
+                paymentMethod = "QRIS";
+                System.out.println("\n╔════════════════════════════════════════════╗");
+                System.out.println("║                SCAN QRIS                   ║");
+                System.out.println("╠════════════════════════════════════════════╣");
+                System.out.println("║   ▄▄▄▄▄▄▄   ▄ ▄▄▄▄ ▄▄  ▄▄▄▄▄▄▄             ║");
+                System.out.println("║   █ ▄▄▄ █ ▀█▄▀▄  ▄ ▄█  █ ▄▄▄ █             ║");
+                System.out.println("║   █ ███ █ ▄ █▄▀▄ ▄▄▀▄  █ ███ █             ║");
+                System.out.println("║   █▄▄▄▄▄█ █ ▀ ▀ █ ▀ ▀  █▄▄▄▄▄█             ║");
+                System.out.println("╚════════════════════════════════════════════╝");
+                System.out.println("Silakan scan QRIS di atas menggunakan aplikasi E-Wallet Anda (seperti Dana atau Wondr by Bank Negara Indonesia).");
+                System.out.print("\nTekan ENTER jika Anda sudah menyelesaikan pembayaran di aplikasi...");
+                input.nextLine();
+                System.out.println("Memverifikasi pembayaran QRIS...");
+                break;
             default:
                 System.out.println("Metode tidak valid! Menggunakan CASH.");
                 paymentMethod = "CASH";
         }
+        // ==========================================
+        // AKHIR PERUBAHAN
+        // ==========================================
 
         // Gunakan booking pertama untuk payment (bisa diperbaiki di masa depan untuk multi-booking payment)
         int bookingId = 1; // Seharusnya dapatkan dari insertMultiple() jika diperlukan
