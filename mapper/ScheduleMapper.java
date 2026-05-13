@@ -42,5 +42,32 @@ public class ScheduleMapper {
         }
 
     } catch (Exception e) {}
-}
+    }
+
+    public boolean deleteSchedule(int scheduleId) {
+        try (Connection conn = Database.connect()) {
+            // Hapus seats terlebih dahulu (foreign key constraint)
+            String deleteSeatsSql = "DELETE FROM seat WHERE schedule_id=?";
+            PreparedStatement deleteSeatsStmt = conn.prepareStatement(deleteSeatsSql);
+            deleteSeatsStmt.setInt(1, scheduleId);
+            deleteSeatsStmt.executeUpdate();
+
+            // Hapus bookings
+            String deleteBookingsSql = "DELETE FROM booking WHERE schedule_id=?";
+            PreparedStatement deleteBookingsStmt = conn.prepareStatement(deleteBookingsSql);
+            deleteBookingsStmt.setInt(1, scheduleId);
+            deleteBookingsStmt.executeUpdate();
+
+            // Hapus schedule
+            String deleteScheduleSql = "DELETE FROM schedule WHERE id=?";
+            PreparedStatement deleteScheduleStmt = conn.prepareStatement(deleteScheduleSql);
+            deleteScheduleStmt.setInt(1, scheduleId);
+            int result = deleteScheduleStmt.executeUpdate();
+            
+            return result > 0;
+        } catch (Exception e) {
+            System.out.println("Error menghapus jadwal: " + e.getMessage());
+            return false;
+        }
+    }
 }

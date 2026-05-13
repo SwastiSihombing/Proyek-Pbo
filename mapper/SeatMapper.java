@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 import database.Database;
 
@@ -99,6 +100,56 @@ public class SeatMapper {
 
         System.out.println("════════════════════════════════════");
         System.out.println("Keterangan: [A1] = Kursi Tersedia | [XX] = Terpesan");
+        System.out.println("════════════════════════════════════\n");
+    }
+
+    // ===== VISUALISASI LAYOUT KURSI DENGAN KURSI YANG DIPILIH =====
+    public void displaySeatLayoutWithSelected(int scheduleId, List<String> selectedSeats) {
+        Map<String, Boolean> seatStatus = new HashMap<>();
+        
+        try (Connection conn = Database.connect()) {
+            String sql = "SELECT seat_number, is_booked FROM seat WHERE schedule_id=? ORDER BY seat_number";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, scheduleId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                String seatNum = rs.getString("seat_number");
+                boolean isBooked = rs.getInt("is_booked") == 1;
+                seatStatus.put(seatNum, isBooked);
+            }
+        } catch (Exception e) {
+            System.out.println("Error membaca kursi: " + e.getMessage());
+            return;
+        }
+
+        // Tampilkan layout kursi dengan kursi yang dipilih
+        System.out.println("\n╔════════════════════════════════════╗");
+        System.out.println("║     LAYOUT KURSI BIOSKOP (3x5)     ║");
+        System.out.println("║       Layar / Screen                ║");
+        System.out.println("╚════════════════════════════════════╝");
+
+        String[] rows = {"A", "B", "C"};
+        
+        for (String row : rows) {
+            System.out.print(row + " | ");
+            for (int i = 1; i <= 5; i++) {
+                String seatNum = row + i;
+                boolean isBooked = seatStatus.getOrDefault(seatNum, false);
+                
+                if (isBooked) {
+                    System.out.print("[XX] "); // XX untuk terpesan
+                } else if (selectedSeats.contains(seatNum)) {
+                    System.out.print("[✓✓] "); // ✓✓ untuk kursi yang dipilih
+                } else {
+                    System.out.print("[" + seatNum + "] "); // Nomor kursi yang tersedia
+                }
+            }
+            System.out.println(" |");
+        }
+
+        System.out.println("════════════════════════════════════");
+        System.out.println("Keterangan: [A1] = Tersedia | [XX] = Terpesan | [✓✓] = Dipilih");
         System.out.println("════════════════════════════════════\n");
     }
 

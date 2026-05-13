@@ -71,31 +71,23 @@ public class Main {
             System.out.println("\n========================================");
             System.out.println("       MENU ADMIN");
             System.out.println("========================================");
-            System.out.println("1. Tambah Film");
-            System.out.println("2. Tambah Jadwal");
-            System.out.println("3. Lihat Semua Film");
-            System.out.println("4. Lihat Semua Jadwal");
-            System.out.println("5. Kembali ke Menu Utama");
+            System.out.println("1. Tambah Jadwal");
+            System.out.println("2. Lihat Jadwal");
+            System.out.println("3. Kembali ke Menu Utama");
             System.out.println("========================================");
-            System.out.print("Pilih menu (1-5): ");
+            System.out.print("Pilih menu (1-3): ");
 
             pilih = input.nextInt();
             input.nextLine();
 
             switch (pilih) {
                 case 1:
-                    tambahFilm();
-                    break;
-                case 2:
                     tambahJadwal();
                     break;
-                case 3:
-                    lihatSemuaFilm();
-                    break;
-                case 4:
+                case 2:
                     lihatSemuaJadwal();
                     break;
-                case 5:
+                case 3:
                     kembali = true;
                     System.out.println("\nKembali ke menu utama...");
                     break;
@@ -281,6 +273,10 @@ public class Main {
 
             selectedSeats.add(seat);
             System.out.println("✓ Kursi " + seat + " ditambahkan. (Total: " + selectedSeats.size() + ")");
+            
+            // Tampilkan layout kursi yang terupdate
+            System.out.println("\nLayout Kursi Terupdate:");
+            seatMapper.displaySeatLayoutWithSelected(scheduleIdBook, selectedSeats);
 
             System.out.print("Tambah kursi lagi? (y/n): ");
             String choice = input.nextLine().toLowerCase();
