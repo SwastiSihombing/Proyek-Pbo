@@ -356,7 +356,7 @@ public class Main {
             case 3:
                 paymentMethod = "TRANSFER";
                 break;
-            case 4: // <-- Case 4 untuk memproses QRIS
+            case 4: 
                 paymentMethod = "QRIS";
                 System.out.println("\n╔════════════════════════════════════════════╗");
                 System.out.println("║                SCAN QRIS                   ║");
