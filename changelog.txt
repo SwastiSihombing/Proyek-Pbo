@@ -1,5 +1,43 @@
 # CHANGELOG
 
+## [2.0.0] - 2026-05-13
+
+### Added
+- Separated seat booking and payment into different menus for better UX
+- Virtual account generation for bank transfer payments
+- Loading animation with 5-second delay for payment processing
+- Multiple payment methods: TRANSFER, CARD, CASH, QRIS/E-WALLET
+- Professional payment receipt with detailed information
+- New payment status values: MENUNGGU_PEMBAYARAN (Waiting for Payment), LUNAS (Paid)
+- Improved CLI interface with box drawing characters for better visual hierarchy
+- Admin can view payment history with customer details
+- Customer can view film and schedule list together
+- Automatic database synchronization between admin and customer roles
+- Documentation file: FITUR_BARU.md with comprehensive feature descriptions
+
+### Changed
+- Updated Payment model to reflect new status options
+- Modified menuCustomer() to include new separate menu items
+- Enhanced lihatFilm() to display both films and schedules
+- Refactored pesanKursiDanBayar() into two separate methods:
+  - pesanKursi(): For seat selection only
+  - prosesPembayaran(): For payment processing
+- Improved Main.java with professional payment processing methods:
+  - prosesTransferBank(): Handle bank transfer with virtual account
+  - prosesKartuDebit(): Handle card payment
+  - prosesTunai(): Handle cash payment
+  - prosesQRIS(): Handle QR code payment
+  - animasiLoading(): Simulate payment processing
+  - cetakStrukPembayaran(): Print professional receipt
+
+### Improved
+- CLI interface now uses Unicode box drawing characters for better readability
+- Payment flow is more realistic with status tracking
+- Customer experience is improved with modular menu options
+- Database consistency between admin operations and customer view
+
+---
+
 ## [1.0.0] - 2026-05-12
 
 ### Added

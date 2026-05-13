@@ -6,8 +6,8 @@ public class Payment {
     private int id;
     private int bookingId;
     private double amount;
-    private String paymentMethod; // CASH, CARD, TRANSFER
-    private String status; // PENDING, COMPLETED, FAILED, CANCELLED
+    private String paymentMethod; // CASH, CARD, TRANSFER, QRIS
+    private String status; // MENUNGGU_PEMBAYARAN, LUNAS, FAILED, CANCELLED
     private LocalDateTime paymentDate;
 
     public Payment() {
@@ -17,7 +17,7 @@ public class Payment {
         this.bookingId = bookingId;
         this.amount = amount;
         this.paymentMethod = paymentMethod;
-        this.status = "PENDING";
+        this.status = "MENUNGGU_PEMBAYARAN";
         this.paymentDate = LocalDateTime.now();
     }
 

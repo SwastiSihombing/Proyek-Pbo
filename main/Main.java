@@ -110,15 +110,16 @@ public class Main {
         boolean kembali = false;
 
         while (!kembali) {
-            System.out.println("\n========================================");
-            System.out.println("       MENU CUSTOMER");
-            System.out.println("========================================");
-            System.out.println("1. Lihat Film");
-            System.out.println("2. Pesan Kursi & Bayar");
-            System.out.println("3. Lihat Riwayat Pembayaran");
-            System.out.println("4. Kembali ke Menu Utama");
-            System.out.println("========================================");
-            System.out.print("Pilih menu (1-4): ");
+            System.out.println("\n╔════════════════════════════════════════════╗");
+            System.out.println("║       MENU CUSTOMER                        ║");
+            System.out.println("╠════════════════════════════════════════════╣");
+            System.out.println("║ 1. Lihat Film & Jadwal Tersedia            ║");
+            System.out.println("║ 2. Pesan Kursi                             ║");
+            System.out.println("║ 3. Lanjut ke Pembayaran                    ║");
+            System.out.println("║ 4. Lihat Riwayat Pembayaran                ║");
+            System.out.println("║ 5. Kembali ke Menu Utama                   ║");
+            System.out.println("╚════════════════════════════════════════════╝");
+            System.out.print("Pilih menu (1-5): ");
 
             pilih = input.nextInt();
             input.nextLine();
@@ -128,17 +129,20 @@ public class Main {
                     lihatFilm();
                     break;
                 case 2:
-                    pesanKursiDanBayar();
+                    pesanKursi();
                     break;
                 case 3:
-                    lihatRiwayatPembayaran();
+                    prosesPembayaran();
                     break;
                 case 4:
+                    lihatRiwayatPembayaran();
+                    break;
+                case 5:
                     kembali = true;
                     System.out.println("\nKembali ke menu utama...");
                     break;
                 default:
-                    System.out.println("\nMenu tidak tersedia!");
+                    System.out.println("\n✗ Menu tidak tersedia!");
             }
         }
     }
@@ -254,16 +258,21 @@ public class Main {
     // ===== FITUR CUSTOMER =====
 
     private static void lihatFilm() {
-        System.out.println("\n========================================");
-        System.out.println("       DAFTAR FILM TERSEDIA");
-        System.out.println("========================================");
+        System.out.println("\n╔════════════════════════════════════════════╗");
+        System.out.println("║   DAFTAR FILM & JADWAL TERSEDIA            ║");
+        System.out.println("╚════════════════════════════════════════════╝");
+        
+        System.out.println("\n--- DAFTAR FILM ---");
         lihatSemuaFilm();
+        
+        System.out.println("\n--- JADWAL TAYANG ---");
+        scheduleMapper.showScheduleWithFilm();
     }
 
-    private static void pesanKursiDanBayar() {
-        System.out.println("\n========================================");
-        System.out.println("       PESAN KURSI & BAYAR TIKET");
-        System.out.println("========================================");
+    private static void pesanKursi() {
+        System.out.println("\n╔════════════════════════════════════════════╗");
+        System.out.println("║       PESAN KURSI TIKET BIOSKOP            ║");
+        System.out.println("╚════════════════════════════════════════════╝");
 
         lihatSemuaJadwal();
 
@@ -290,9 +299,9 @@ public class Main {
         List<String> selectedSeats = new ArrayList<>();
         boolean addingSeats = true;
 
-        System.out.println("\n──────────────────────────────────────────");
-        System.out.println("PEMESANAN MULTIPLE KURSI");
-        System.out.println("──────────────────────────────────────────");
+        System.out.println("\n┌──────────────────────────────────────────┐");
+        System.out.println("│ PEMESANAN MULTIPLE KURSI                 │");
+        System.out.println("└──────────────────────────────────────────┘");
 
         while (addingSeats) {
             System.out.print("Masukkan Nomor Kursi (contoh: A1, B3): ");
@@ -320,7 +329,7 @@ public class Main {
             System.out.println("✓ Kursi " + seat + " ditambahkan. (Total: " + selectedSeats.size() + ")");
             
             // Tampilkan layout kursi yang terupdate
-            System.out.println("\nLayout Kursi Terupdate:");
+            System.out.println("\n─ Layout Kursi Terupdate:");
             seatMapper.displaySeatLayoutWithSelected(scheduleIdBook, selectedSeats);
 
             System.out.print("Tambah kursi lagi? (y/n): ");
@@ -339,10 +348,10 @@ public class Main {
         System.out.println("\n╔════════════════════════════════════════════╗");
         System.out.println("║  RINGKASAN PEMESANAN                       ║");
         System.out.println("╚════════════════════════════════════════════╝");
-        System.out.println("Nama Customer: " + customer);
-        System.out.println("Kursi yang Dipesan: " + String.join(", ", selectedSeats));
-        System.out.println("Jumlah Tiket: " + selectedSeats.size());
-        System.out.println("──────────────────────────────────────────");
+        System.out.println("Nama Customer      : " + customer);
+        System.out.println("Kursi yang Dipesan : " + String.join(", ", selectedSeats));
+        System.out.println("Jumlah Tiket       : " + selectedSeats.size());
+        System.out.println("────────────────────────────────────────────");
 
         // Proses booking
         boolean bookingSuccess = bookingMapper.insertMultiple(customer, scheduleIdBook, selectedSeats);
@@ -353,101 +362,10 @@ public class Main {
                 seatMapper.bookSeat(scheduleIdBook, seat);
             }
             System.out.println("✓ Booking berhasil!");
+            System.out.println("\nSilakan lanjut ke menu 'Lanjut ke Pembayaran' untuk menyelesaikan transaksi.");
         } else {
             System.out.println("✗ Booking gagal!");
             return;
-        }
-
-        // Proses Pembayaran
-        System.out.println("\n╔════════════════════════════════════════════╗");
-        System.out.println("║  PROSES PEMBAYARAN                         ║");
-        System.out.println("╚════════════════════════════════════════════╝");
-
-        System.out.print("Harga per Tiket (Rp): ");
-        double pricePerTicket = input.nextDouble();
-        double totalAmount = pricePerTicket * selectedSeats.size();
-        input.nextLine();
-
-        System.out.println("\nRingkasan Harga:");
-        System.out.println("  Harga per Tiket : Rp " + String.format("%.0f", pricePerTicket));
-        System.out.println("  Jumlah Tiket    : " + selectedSeats.size());
-        System.out.println("  Total Harga     : Rp " + String.format("%.0f", totalAmount));
-        System.out.println("──────────────────────────────────────────");
-
-        // ==========================================
-        // PERUBAHAN METODE PEMBAYARAN DITAMBAHKAN DI SINI
-        // ==========================================
-        System.out.println("\nMetode Pembayaran:");
-        System.out.println("1. CASH");
-        System.out.println("2. CARD");
-        System.out.println("3. TRANSFER");
-        System.out.println("4. QRIS / E-WALLET"); // <-- Opsi QRIS
-        System.out.print("Pilih metode (1-4): "); // <-- Pilihan diupdate jadi 1-4
-        int methodChoice = input.nextInt();
-        input.nextLine();
-
-        String paymentMethod = "";
-        switch (methodChoice) {
-            case 1:
-                paymentMethod = "CASH";
-                break;
-            case 2:
-                paymentMethod = "CARD";
-                break;
-            case 3:
-                paymentMethod = "TRANSFER";
-                break;
-            case 4: 
-                paymentMethod = "QRIS";
-                System.out.println("\n╔════════════════════════════════════════════╗");
-                System.out.println("║                SCAN QRIS                   ║");
-                System.out.println("╠════════════════════════════════════════════╣");
-                System.out.println("║   ▄▄▄▄▄▄▄   ▄ ▄▄▄▄ ▄▄  ▄▄▄▄▄▄▄             ║");
-                System.out.println("║   █ ▄▄▄ █ ▀█▄▀▄  ▄ ▄█  █ ▄▄▄ █             ║");
-                System.out.println("║   █ ███ █ ▄ █▄▀▄ ▄▄▀▄  █ ███ █             ║");
-                System.out.println("║   █▄▄▄▄▄█ █ ▀ ▀ █ ▀ ▀  █▄▄▄▄▄█             ║");
-                System.out.println("╚════════════════════════════════════════════╝");
-                System.out.println("Silakan scan QRIS di atas menggunakan aplikasi E-Wallet Anda (seperti Dana atau Wondr by Bank Negara Indonesia).");
-                System.out.print("\nTekan ENTER jika Anda sudah menyelesaikan pembayaran di aplikasi...");
-                input.nextLine();
-                System.out.println("Memverifikasi pembayaran QRIS...");
-                break;
-            default:
-                System.out.println("Metode tidak valid! Menggunakan CASH.");
-                paymentMethod = "CASH";
-        }
-        // ==========================================
-        // AKHIR PERUBAHAN
-        // ==========================================
-
-        // Gunakan booking pertama untuk payment (bisa diperbaiki di masa depan untuk multi-booking payment)
-        int bookingId = 1; // Seharusnya dapatkan dari insertMultiple() jika diperlukan
-        Payment payment = new Payment(bookingId, totalAmount, paymentMethod);
-        int paymentId = paymentMapper.insert(payment);
-
-        if (paymentId > 0) {
-            System.out.print("\nProses pembayaran... ");
-            try {
-                Thread.sleep(1500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            paymentMapper.updateStatus(paymentId, "COMPLETED");
-            System.out.println("BERHASIL!\n");
-
-            System.out.println("╔════════════════════════════════════════════╗");
-            System.out.println("║  PEMBAYARAN BERHASIL ✓                     ║");
-            System.out.println("╚════════════════════════════════════════════╝");
-            System.out.println("ID Pembayaran   : " + paymentId);
-            System.out.println("Nama Customer   : " + customer);
-            System.out.println("Kursi           : " + String.join(", ", selectedSeats));
-            System.out.println("Metode Pembayaran: " + paymentMethod);
-            System.out.println("Total Pembayaran: Rp " + String.format("%.0f", totalAmount));
-            System.out.println("Status          : COMPLETED ✓");
-            System.out.println("╚════════════════════════════════════════════╝\n");
-        } else {
-            System.out.println("GAGAL!");
-            System.out.println("✗ Pembayaran gagal!");
         }
     }
 
@@ -468,9 +386,211 @@ public class Main {
     }
 
     private static void lihatRiwayatPembayaran() {
-        System.out.println("\n========================================");
-        System.out.println("       RIWAYAT PEMBAYARAN");
-        System.out.println("========================================");
+        System.out.println("\n╔════════════════════════════════════════════╗");
+        System.out.println("║       RIWAYAT PEMBAYARAN                   ║");
+        System.out.println("╚════════════════════════════════════════════╝");
         paymentMapper.showPaymentHistory();
+    }
+
+    private static void prosesPembayaran() {
+        System.out.println("\n╔════════════════════════════════════════════╗");
+        System.out.println("║    PROSES PEMBAYARAN TIKET                 ║");
+        System.out.println("╚════════════════════════════════════════════╝");
+
+        System.out.print("Masukkan Nama Customer: ");
+        String customerName = input.nextLine();
+
+        System.out.print("Harga per Tiket (Rp): ");
+        double pricePerTicket = input.nextDouble();
+        input.nextLine();
+
+        System.out.print("Jumlah Tiket: ");
+        int ticketCount = input.nextInt();
+        input.nextLine();
+
+        double totalAmount = pricePerTicket * ticketCount;
+
+        // Tampilkan ringkasan harga
+        System.out.println("\n╔════════════════════════════════════════════╗");
+        System.out.println("║      RINGKASAN PEMBAYARAN                  ║");
+        System.out.println("╠════════════════════════════════════════════╣");
+        System.out.println("║ Nama Customer       : " + String.format("%-21s ║", customerName));
+        System.out.println("║ Harga per Tiket     : Rp " + String.format("%-21.0f ║", pricePerTicket));
+        System.out.println("║ Jumlah Tiket        : " + String.format("%-22d ║", ticketCount));
+        System.out.println("║ ─────────────────────────────────────────── ║");
+        System.out.println("║ TOTAL PEMBAYARAN    : Rp " + String.format("%-21.0f ║", totalAmount));
+        System.out.println("╚════════════════════════════════════════════╝");
+
+        // Pilih metode pembayaran
+        System.out.println("\n┌──────────────────────────────────────────┐");
+        System.out.println("│ PILIH METODE PEMBAYARAN                  │");
+        System.out.println("├──────────────────────────────────────────┤");
+        System.out.println("│ 1. TRANSFER BANK (Virtual Account)       │");
+        System.out.println("│ 2. KARTU DEBIT / KREDIT                  │");
+        System.out.println("│ 3. TUNAI (CASH)                          │");
+        System.out.println("│ 4. E-WALLET / QRIS                       │");
+        System.out.println("└──────────────────────────────────────────┘");
+        System.out.print("Pilih metode (1-4): ");
+        int methodChoice = input.nextInt();
+        input.nextLine();
+
+        String paymentMethod = "";
+        String virtualAccount = "";
+
+        switch (methodChoice) {
+            case 1:
+                paymentMethod = "TRANSFER";
+                virtualAccount = generateVirtualAccount();
+                prosesTransferBank(customerName, totalAmount, virtualAccount);
+                break;
+            case 2:
+                paymentMethod = "CARD";
+                prosesKartuDebit(customerName, totalAmount);
+                break;
+            case 3:
+                paymentMethod = "CASH";
+                prosesTunai(customerName, totalAmount);
+                break;
+            case 4:
+                paymentMethod = "QRIS";
+                prosesQRIS(customerName, totalAmount);
+                break;
+            default:
+                System.out.println("✗ Pilihan tidak valid!");
+                return;
+        }
+
+        // Simpan pembayaran ke database
+        int bookingId = 1; // Seharusnya dapatkan dari data booking customer
+        Payment payment = new Payment(bookingId, totalAmount, paymentMethod);
+        int paymentId = paymentMapper.insert(payment);
+
+        if (paymentId > 0) {
+            paymentMapper.updateStatus(paymentId, "LUNAS");
+            cetakStrukPembayaran(paymentId, customerName, ticketCount, pricePerTicket, totalAmount, paymentMethod, virtualAccount);
+        } else {
+            System.out.println("✗ Pembayaran gagal dicatat!");
+        }
+    }
+
+    private static String generateVirtualAccount() {
+        long vaNumber = 1000000000000000L + (long)(Math.random() * 9000000000000000L);
+        return String.valueOf(vaNumber).substring(0, 16);
+    }
+
+    private static void prosesTransferBank(String customerName, double totalAmount, String virtualAccount) {
+        System.out.println("\n╔════════════════════════════════════════════╗");
+        System.out.println("║    MENUNGGU PEMBAYARAN TRANSFER BANK       ║");
+        System.out.println("╚════════════════════════════════════════════╝");
+        
+        System.out.println("\n┌─ INSTRUKSI PEMBAYARAN ─────────────────────┐");
+        System.out.println("│ Status: MENUNGGU PEMBAYARAN                │");
+        System.out.println("├────────────────────────────────────────────┤");
+        System.out.println("│ Bank         : BCA / MANDIRI / BNI         │");
+        System.out.println("│ Virtual Acc  : " + virtualAccount + "       │");
+        System.out.println("│ Nama         : PT. BIOSKOP DIGITAL         │");
+        System.out.println("│ Nominal      : Rp " + String.format("%-28.0f │", totalAmount));
+        System.out.println("└────────────────────────────────────────────┘");
+        System.out.println("\n💡 Tips: Kirim uang ke virtual account di atas melalui ATM atau Mobile Banking!");
+        System.out.println("⏱  Pembayaran akan dikonfirmasi dalam 5 detik...\n");
+
+        animasiLoading(5);
+    }
+
+    private static void prosesKartuDebit(String customerName, double totalAmount) {
+        System.out.println("\n╔════════════════════════════════════════════╗");
+        System.out.println("║    MEMPROSES PEMBAYARAN KARTU DEBIT        ║");
+        System.out.println("╚════════════════════════════════════════════╝");
+        
+        System.out.println("\n┌──────────────────────────────────────────┐");
+        System.out.println("│ Silakan masukkan kartu debit Anda...      │");
+        System.out.println("├──────────────────────────────────────────┤");
+        System.out.println("│ Nominal      : Rp " + String.format("%-28.0f │", totalAmount));
+        System.out.println("└──────────────────────────────────────────┘");
+        System.out.println("\n🔒 Status: SEDANG DIPROSES");
+        System.out.println("⏱  Menunggu konfirmasi bank...\n");
+
+        animasiLoading(5);
+    }
+
+    private static void prosesTunai(String customerName, double totalAmount) {
+        System.out.println("\n╔════════════════════════════════════════════╗");
+        System.out.println("║    PEMBAYARAN TUNAI DI KASIR               ║");
+        System.out.println("╚════════════════════════════════════════════╝");
+        
+        System.out.println("\n┌──────────────────────────────────────────┐");
+        System.out.println("│ Silakan bayar ke kasir sebesar:          │");
+        System.out.println("├──────────────────────────────────────────┤");
+        System.out.println("│ Nominal      : Rp " + String.format("%-28.0f │", totalAmount));
+        System.out.println("└──────────────────────────────────────────┘");
+        System.out.println("\n💵 Terima kasih telah memilih pembayaran tunai!");
+        System.out.println("⏳ Pembayaran sedang diverifikasi...\n");
+
+        animasiLoading(5);
+    }
+
+    private static void prosesQRIS(String customerName, double totalAmount) {
+        System.out.println("\n╔════════════════════════════════════════════╗");
+        System.out.println("║         SCAN QRIS / E-WALLET              ║");
+        System.out.println("╚════════════════════════════════════════════╝");
+        
+        System.out.println("\n┌────────────────────────────────────────────┐");
+        System.out.println("│          QRIS CODE (DUMMY)                 │");
+        System.out.println("├────────────────────────────────────────────┤");
+        System.out.println("│   ▄▄▄▄▄▄▄   ▄ ▄▄▄▄ ▄▄  ▄▄▄▄▄▄▄          │");
+        System.out.println("│   █ ▄▄▄ █ ▀█▄▀▄  ▄ ▄█  █ ▄▄▄ █          │");
+        System.out.println("│   █ ███ █ ▄ █▄▀▄ ▄▄▀▄  █ ███ █          │");
+        System.out.println("│   █▄▄▄▄▄█ █ ▀ ▀ █ ▀ ▀  █▄▄▄▄▄█          │");
+        System.out.println("│                                            │");
+        System.out.println("│ Nominal : Rp " + String.format("%-32.0f │", totalAmount));
+        System.out.println("└────────────────────────────────────────────┘");
+        System.out.println("\n📱 Silakan scan QRIS di atas dengan aplikasi E-Wallet Anda!");
+        System.out.println("   (Dana, Gopay, OVO, LinkAja, dll)");
+        System.out.println("⏳ Menunggu konfirmasi pembayaran...\n");
+
+        animasiLoading(5);
+    }
+
+    private static void animasiLoading(int detik) {
+        System.out.print("⏳ Sedang memproses ");
+        for (int i = 0; i < detik; i++) {
+            System.out.print(".");
+            System.out.flush();
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println(" ✓ Selesai!\n");
+    }
+
+    private static void cetakStrukPembayaran(int paymentId, String customerName, int ticketCount,
+                                               double pricePerTicket, double totalAmount,
+                                               String paymentMethod, String virtualAccount) {
+        System.out.println("\n╔════════════════════════════════════════════╗");
+        System.out.println("║           STRUK PEMBAYARAN                 ║");
+        System.out.println("║        BIOSKOP DIGITAL INDONESIA           ║");
+        System.out.println("╠════════════════════════════════════════════╣");
+        System.out.println("║ NO. TRANSAKSI : " + String.format("%-27d ║", paymentId));
+        System.out.println("║ TANGGAL       : " + String.format("%-27s ║", java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))));
+        System.out.println("╠════════════════════════════════════════════╣");
+        System.out.println("║ NAMA CUSTOMER : " + String.format("%-27s ║", customerName));
+        System.out.println("║ JUMLAH TIKET  : " + String.format("%-27d ║", ticketCount));
+        System.out.println("║ HARGA SATUAN  : Rp " + String.format("%-24.0f ║", pricePerTicket));
+        System.out.println("╠════════════════════════════════════════════╣");
+        System.out.println("║ SUBTOTAL      : Rp " + String.format("%-24.0f ║", totalAmount));
+        System.out.println("║ PAJAK (0%)    : Rp " + String.format("%-24.0f ║", 0.0));
+        System.out.println("║ TOTAL BAYAR   : Rp " + String.format("%-24.0f ║", totalAmount));
+        System.out.println("╠════════════════════════════════════════════╣");
+        System.out.println("║ METODE        : " + String.format("%-27s ║", paymentMethod));
+        if (paymentMethod.equals("TRANSFER") && !virtualAccount.isEmpty()) {
+            System.out.println("║ REKENING      : " + String.format("%-27s ║", virtualAccount));
+        }
+        System.out.println("║ STATUS        : LUNAS ✓                    ║");
+        System.out.println("╠════════════════════════════════════════════╣");
+        System.out.println("║ Terima kasih telah berbelanja!             ║");
+        System.out.println("║ Nikmati pengalaman menonton Anda!          ║");
+        System.out.println("╚════════════════════════════════════════════╝\n");
     }
 }

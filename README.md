@@ -14,7 +14,16 @@ Proyek ini mengintegrasikan empat konsep pilar utama pembelajaran Java Menengah-
 ## 👥 Sistem Multi-Role (2 Peran)
 Aplikasi membagi alur kerja ke dalam 2 interaksi utama (menggunakan 1 database *central* SQLite):
 - **Admin**: Peran yang memiliki wewenang untuk mengisi data mentah ke dalam database (Menambah Data Film & Menambah Jadwal Tayang). Saat Admin membuat Jadwal baru, sistem akan otomatis meng-generate (menyuntikkan) kursi kosong ke dalam database sejumlah 15 kursi (A1 hingga C5).
-- **Customer**: Peran yang melihat katalog film & jadwal, serta memesan kursi pada jadwal yang tersedia. Saat Customer melakukan *booking*, kursi tersebut akan dicatat dalam tabel `booking`.
+- **Customer**: Peran yang melihat katalog film & jadwal, serta memesan kursi pada jadwal yang tersedia. Saat Customer melakukan *booking*, kursi tersebut akan dicatat dalam tabel `booking`. Sistem pembayaran yang baru memungkinkan pemisahan antara pemesanan kursi dan proses pembayaran.
+
+### ✨ Fitur Baru Pembayaran (v2.0)
+- **Menu Terpisah**: Pemisahan menu antara "Pesan Kursi" dan "Lanjut ke Pembayaran"
+- **Virtual Account**: Dukungan transfer bank dengan nomor virtual account yang di-generate otomatis
+- **Loading Animation**: Simulasi loading pembayaran dengan delay 5 detik
+- **Metode Pembayaran Lengkap**: TRANSFER, CARD, CASH, QRIS/E-WALLET
+- **Struk Pembayaran Profesional**: Cetak struk dengan detail lengkap termasuk nomor transaksi, tanggal, metode, dan status
+- **Status Pembayaran**: MENUNGGU_PEMBAYARAN, LUNAS, FAILED, CANCELLED
+- **Database Sinkron**: Data jadwal dan film dari admin otomatis terlihat di customer
 
 ---
 
