@@ -138,6 +138,42 @@ public class PaymentMapper {
         }
     }
 
+    // Tampilkan riwayat pembayaran semua customer dengan customer ID dan film ID
+    public void showPaymentHistoryWithDetails() {
+        String sql = "SELECT p.id as payment_id, b.customer_id, b.schedule_id, s.film_id, p.amount, p.payment_method, p.status, p.payment_date " +
+                     "FROM payments p " +
+                     "JOIN booking b ON p.booking_id = b.id " +
+                     "JOIN schedule s ON b.schedule_id = s.id " +
+                     "ORDER BY p.payment_date DESC";
+        try (Connection conn = Database.getConnection();
+             Statement stmt = conn.createStatement()) {
+
+            ResultSet rs = stmt.executeQuery(sql);
+            System.out.println("\n╔════════════════════════════════════════════════════════════════════╗");
+            System.out.println("║           RIWAYAT PEMBAYARAN SEMUA CUSTOMER                     ║");
+            System.out.println("╚════════════════════════════════════════════════════════════════════╝");
+            
+            boolean hasData = false;
+            while (rs.next()) {
+                hasData = true;
+                System.out.println("──────────────────────────────────────────────────────────────────");
+                System.out.println("Payment ID     : " + rs.getInt("payment_id"));
+                System.out.println("Customer ID    : " + rs.getInt("customer_id"));
+                System.out.println("Film ID        : " + rs.getInt("film_id"));
+                System.out.println("Amount         : Rp " + String.format("%.0f", rs.getDouble("amount")));
+                System.out.println("Method         : " + rs.getString("payment_method"));
+                System.out.println("Status         : " + rs.getString("status"));
+                System.out.println("Tanggal        : " + rs.getTimestamp("payment_date"));
+            }
+            
+            if (!hasData) {
+                System.out.println("Tidak ada riwayat pembayaran.");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error membaca riwayat pembayaran: " + e.getMessage());
+        }
+    }
+
     // Helper method
     private Payment mapResultSetToPayment(ResultSet rs) throws SQLException {
         int id = rs.getInt("id");

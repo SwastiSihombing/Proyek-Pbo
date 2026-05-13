@@ -73,9 +73,11 @@ public class Main {
             System.out.println("========================================");
             System.out.println("1. Tambah Jadwal");
             System.out.println("2. Lihat Jadwal");
-            System.out.println("3. Kembali ke Menu Utama");
+            System.out.println("3. Hapus Jadwal");
+            System.out.println("4. Lihat Riwayat Pembayaran");
+            System.out.println("5. Kembali ke Menu Utama");
             System.out.println("========================================");
-            System.out.print("Pilih menu (1-3): ");
+            System.out.print("Pilih menu (1-5): ");
 
             pilih = input.nextInt();
             input.nextLine();
@@ -88,6 +90,12 @@ public class Main {
                     lihatSemuaJadwal();
                     break;
                 case 3:
+                    hapusJadwal();
+                    break;
+                case 4:
+                    lihatRiwayatPembayaranAdmin();
+                    break;
+                case 5:
                     kembali = true;
                     System.out.println("\nKembali ke menu utama...");
                     break;
@@ -105,7 +113,7 @@ public class Main {
             System.out.println("\n========================================");
             System.out.println("       MENU CUSTOMER");
             System.out.println("========================================");
-            System.out.println("1. Lihat Film & Jadwal");
+            System.out.println("1. Lihat Film");
             System.out.println("2. Pesan Kursi & Bayar");
             System.out.println("3. Lihat Riwayat Pembayaran");
             System.out.println("4. Kembali ke Menu Utama");
@@ -117,7 +125,7 @@ public class Main {
 
             switch (pilih) {
                 case 1:
-                    lihatFilmJadwal();
+                    lihatFilm();
                     break;
                 case 2:
                     pesanKursiDanBayar();
@@ -206,13 +214,50 @@ public class Main {
         scheduleMapper.showScheduleWithFilm();
     }
 
+    private static void hapusJadwal() {
+        System.out.println("\n========================================");
+        System.out.println("       HAPUS JADWAL FILM");
+        System.out.println("========================================");
+        
+        lihatSemuaJadwal();
+        
+        System.out.print("\nMasukkan ID Jadwal yang ingin dihapus: ");
+        int scheduleId = input.nextInt();
+        input.nextLine();
+        
+        if (scheduleId <= 0) {
+            System.out.println("✗ ID Jadwal tidak valid!");
+            return;
+        }
+        
+        System.out.print("Yakin ingin menghapus jadwal ID " + scheduleId + "? (y/n): ");
+        String confirm = input.nextLine().toLowerCase();
+        
+        if (confirm.equals("y")) {
+            if (scheduleMapper.deleteSchedule(scheduleId)) {
+                System.out.println("✓ Jadwal berhasil dihapus!");
+            } else {
+                System.out.println("✗ Jadwal gagal dihapus!");
+            }
+        } else {
+            System.out.println("Penghapusan jadwal dibatalkan.");
+        }
+    }
+
+    private static void lihatRiwayatPembayaranAdmin() {
+        System.out.println("\n========================================");
+        System.out.println("       RIWAYAT PEMBAYARAN SEMUA CUSTOMER");
+        System.out.println("========================================");
+        paymentMapper.showPaymentHistoryWithDetails();
+    }
+
     // ===== FITUR CUSTOMER =====
 
-    private static void lihatFilmJadwal() {
+    private static void lihatFilm() {
         System.out.println("\n========================================");
-        System.out.println("       FILM & JADWAL TERSEDIA");
+        System.out.println("       DAFTAR FILM TERSEDIA");
         System.out.println("========================================");
-        scheduleMapper.showScheduleWithFilm();
+        lihatSemuaFilm();
     }
 
     private static void pesanKursiDanBayar() {
@@ -220,7 +265,7 @@ public class Main {
         System.out.println("       PESAN KURSI & BAYAR TIKET");
         System.out.println("========================================");
 
-        lihatFilmJadwal();
+        lihatSemuaJadwal();
 
         System.out.print("\nMasukkan ID Jadwal: ");
         int scheduleIdBook = input.nextInt();
