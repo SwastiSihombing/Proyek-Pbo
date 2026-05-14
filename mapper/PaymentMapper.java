@@ -11,15 +11,16 @@ public class PaymentMapper {
 
     // Tambah pembayaran baru
     public int insert(Payment payment) {
-        String sql = "INSERT INTO payments (booking_id, amount, payment_method, status, payment_date) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO payments (booking_id, amount, payment_method, payment_reference, status, payment_date) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = Database.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             stmt.setInt(1, payment.getBookingId());
             stmt.setDouble(2, payment.getAmount());
             stmt.setString(3, payment.getPaymentMethod());
-            stmt.setString(4, payment.getStatus());
-            stmt.setTimestamp(5, Timestamp.valueOf(payment.getPaymentDate()));
+            stmt.setString(4, payment.getPaymentReference());
+            stmt.setString(5, payment.getStatus());
+            stmt.setTimestamp(6, Timestamp.valueOf(payment.getPaymentDate()));
 
             stmt.executeUpdate();
 
@@ -118,7 +119,7 @@ public class PaymentMapper {
 
     // Tampilkan riwayat pembayaran
     public void showPaymentHistory() {
-        String sql = "SELECT p.id, p.booking_id, p.amount, p.payment_method, p.status, p.payment_date " +
+        String sql = "SELECT p.id, p.booking_id, p.amount, p.payment_method, p.payment_reference, p.status, p.payment_date " +
                      "FROM payments p ORDER BY p.payment_date DESC";
         try (Connection conn = Database.getConnection();
              Statement stmt = conn.createStatement()) {
@@ -130,6 +131,7 @@ public class PaymentMapper {
                         " | Booking ID: " + rs.getInt("booking_id") +
                         " | Amount: Rp " + rs.getDouble("amount") +
                         " | Method: " + rs.getString("payment_method") +
+                        " | No Rek/Akun: " + rs.getString("payment_reference") +
                         " | Status: " + rs.getString("status") +
                         " | Tanggal: " + rs.getTimestamp("payment_date"));
             }
@@ -144,9 +146,10 @@ public class PaymentMapper {
         int bookingId = rs.getInt("booking_id");
         double amount = rs.getDouble("amount");
         String paymentMethod = rs.getString("payment_method");
+        String paymentReference = rs.getString("payment_reference");
         String status = rs.getString("status");
         LocalDateTime paymentDate = rs.getTimestamp("payment_date").toLocalDateTime();
 
-        return new Payment(id, bookingId, amount, paymentMethod, status, paymentDate);
+        return new Payment(id, bookingId, amount, paymentMethod, paymentReference, status, paymentDate);
     }
 }

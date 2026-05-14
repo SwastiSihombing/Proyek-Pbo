@@ -53,10 +53,14 @@ public class Database {
             stmt.execute("CREATE TABLE IF NOT EXISTS schedule (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "film_id INTEGER NOT NULL, " +
+                    "date TEXT, " +
                     "time TEXT, " +
                     "studio TEXT, " +
+                    "price REAL DEFAULT 0, " +
                     "FOREIGN KEY (film_id) REFERENCES film(id)" +
                     ")");
+            addColumnIfMissing(stmt, "schedule", "date", "TEXT");
+            addColumnIfMissing(stmt, "schedule", "price", "REAL DEFAULT 0");
 
             // Tabel Seat
             stmt.execute("CREATE TABLE IF NOT EXISTS seat (" +
@@ -83,16 +87,29 @@ public class Database {
                     "booking_id INTEGER NOT NULL, " +
                     "amount REAL, " +
                     "payment_method TEXT, " +
+                    "payment_reference TEXT, " +
                     "status TEXT, " +
                     "payment_date TIMESTAMP, " +
                     "FOREIGN KEY (booking_id) REFERENCES booking(id)" +
                     ")");
+            addColumnIfMissing(stmt, "payments", "payment_reference", "TEXT");
 
             System.out.println("Database berhasil diinisialisasi!");
 
         } catch (Exception e) {
             System.err.println("Error: Inisialisasi database gagal");
             e.printStackTrace();
+        }
+    }
+
+    private static void addColumnIfMissing(Statement stmt, String tableName, String columnName, String columnDefinition) {
+        try {
+            stmt.execute("ALTER TABLE " + tableName + " ADD COLUMN " + columnName + " " + columnDefinition);
+        } catch (Exception e) {
+            String message = e.getMessage();
+            if (message == null || !message.toLowerCase().contains("duplicate column")) {
+                System.err.println("Peringatan: gagal menambah kolom " + columnName + " pada tabel " + tableName);
+            }
         }
     }
 }

@@ -179,13 +179,20 @@ public class Main {
         int filmId = input.nextInt();
         input.nextLine();
 
+        System.out.print("Tanggal Tayang (contoh: 2026-05-14): ");
+        String tanggal = input.nextLine();
+
         System.out.print("Jam Tayang (contoh: 13:00): ");
         String jam = input.nextLine();
 
         System.out.print("Studio (contoh: A1): ");
         String studio = input.nextLine();
 
-        int scheduleId = scheduleMapper.insert(filmId, jam, studio);
+        System.out.print("Harga Tiket (Rp): ");
+        double harga = input.nextDouble();
+        input.nextLine();
+
+        int scheduleId = scheduleMapper.insert(filmId, tanggal, jam, studio, harga);
         seatMapper.generateSeats(scheduleId);
 
         System.out.println("✓ Jadwal berhasil ditambahkan!");
@@ -249,54 +256,80 @@ public class Main {
         System.out.println("\n========================================");
         System.out.println("       PROSES PEMBAYARAN");
         System.out.println("========================================");
-        System.out.print("Harga Tiket (Rp): ");
-        double amount = input.nextDouble();
-        input.nextLine();
+        double amount = scheduleMapper.findPriceById(scheduleIdBook);
+        if (amount < 0) {
+            System.out.println("Harga jadwal tidak ditemukan. Pembayaran dibatalkan.");
+            return;
+        }
+        System.out.println("Total Bayar: Rp " + amount);
 
         System.out.println("\nMetode Pembayaran:");
-        System.out.println("1. CASH");
-        System.out.println("2. CARD");
-        System.out.println("3. TRANSFER");
+        System.out.println("1. QRIS");
+        System.out.println("2. TRANSFER");
+        System.out.println("3. E-WALLET");
         System.out.print("Pilih metode (1-3): ");
         int methodChoice = input.nextInt();
         input.nextLine();
 
         String paymentMethod = "";
+        String referenceLabel = "";
         switch (methodChoice) {
             case 1:
-                paymentMethod = "CASH";
+                paymentMethod = "QRIS";
+                referenceLabel = "Kode QRIS / No Rekening";
                 break;
             case 2:
-                paymentMethod = "CARD";
+                paymentMethod = "TRANSFER";
+                referenceLabel = "No Rekening";
                 break;
             case 3:
-                paymentMethod = "TRANSFER";
+                paymentMethod = "E-WALLET";
+                referenceLabel = "No E-Wallet";
                 break;
             default:
-                System.out.println("Metode tidak valid! Menggunakan CASH.");
-                paymentMethod = "CASH";
+                System.out.println("Metode tidak valid! Menggunakan TRANSFER.");
+                paymentMethod = "TRANSFER";
+                referenceLabel = "No Rekening";
         }
 
-        Payment payment = new Payment(bookingId, amount, paymentMethod);
+        System.out.print("Masukkan " + referenceLabel + ": ");
+        String paymentReference = input.nextLine();
+
+        Payment payment = new Payment(bookingId, amount, paymentMethod, paymentReference);
         int paymentId = paymentMapper.insert(payment);
 
         if (paymentId > 0) {
-            System.out.print("\nProses pembayaran... ");
+            cetakStrukPembayaran(paymentId, bookingId, customer, seat, amount, paymentMethod, paymentReference, "PENDING");
+            System.out.println("\nMenunggu konfirmasi pembayaran...");
             try {
-                Thread.sleep(1000);
+                Thread.sleep(5000);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                Thread.currentThread().interrupt();
             }
             paymentMapper.updateStatus(paymentId, "COMPLETED");
-            System.out.println("BERHASIL!");
-            System.out.println("ID Pembayaran: " + paymentId);
-            System.out.println("Metode: " + paymentMethod);
-            System.out.println("Jumlah: Rp " + amount);
-            System.out.println("Status: COMPLETED ✓");
+            System.out.println("Konfirmasi pembayaran berhasil!");
+            System.out.println("Status: COMPLETED");
         } else {
             System.out.println("GAGAL!");
             System.out.println("Pembayaran gagal!");
         }
+    }
+
+    private static void cetakStrukPembayaran(int paymentId, int bookingId, String customer, String seat,
+                                             double amount, String paymentMethod, String paymentReference,
+                                             String status) {
+        System.out.println("\n========================================");
+        System.out.println("          STRUK PEMBAYARAN");
+        System.out.println("========================================");
+        System.out.println("ID Pembayaran : " + paymentId);
+        System.out.println("ID Booking    : " + bookingId);
+        System.out.println("Nama Customer : " + customer);
+        System.out.println("Nomor Kursi   : " + seat);
+        System.out.println("Metode        : " + paymentMethod);
+        System.out.println("No Rek/Akun   : " + paymentReference);
+        System.out.println("Total Bayar   : Rp " + amount);
+        System.out.println("Status        : " + status);
+        System.out.println("========================================");
     }
 
     private static void lihatRiwayatPembayaran() {

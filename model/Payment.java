@@ -6,7 +6,8 @@ public class Payment {
     private int id;
     private int bookingId;
     private double amount;
-    private String paymentMethod; // CASH, CARD, TRANSFER
+    private String paymentMethod; // QRIS, TRANSFER, E-WALLET
+    private String paymentReference;
     private String status; // PENDING, COMPLETED, FAILED, CANCELLED
     private LocalDateTime paymentDate;
 
@@ -21,11 +22,17 @@ public class Payment {
         this.paymentDate = LocalDateTime.now();
     }
 
-    public Payment(int id, int bookingId, double amount, String paymentMethod, String status, LocalDateTime paymentDate) {
+    public Payment(int bookingId, double amount, String paymentMethod, String paymentReference) {
+        this(bookingId, amount, paymentMethod);
+        this.paymentReference = paymentReference;
+    }
+
+    public Payment(int id, int bookingId, double amount, String paymentMethod, String paymentReference, String status, LocalDateTime paymentDate) {
         this.id = id;
         this.bookingId = bookingId;
         this.amount = amount;
         this.paymentMethod = paymentMethod;
+        this.paymentReference = paymentReference;
         this.status = status;
         this.paymentDate = paymentDate;
     }
@@ -63,6 +70,14 @@ public class Payment {
         this.paymentMethod = paymentMethod;
     }
 
+    public String getPaymentReference() {
+        return paymentReference;
+    }
+
+    public void setPaymentReference(String paymentReference) {
+        this.paymentReference = paymentReference;
+    }
+
     public String getStatus() {
         return status;
     }
@@ -86,6 +101,7 @@ public class Payment {
                 ", bookingId=" + bookingId +
                 ", amount=" + amount +
                 ", paymentMethod='" + paymentMethod + '\'' +
+                ", paymentReference='" + paymentReference + '\'' +
                 ", status='" + status + '\'' +
                 ", paymentDate=" + paymentDate +
                 '}';
