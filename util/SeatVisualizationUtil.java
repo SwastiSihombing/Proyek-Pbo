@@ -23,68 +23,59 @@ public class SeatVisualizationUtil {
     private static final String SELECTED = "✓";       // Kursi dipilih (kuning)
 
     /**
-     * Menampilkan layout kursi teater dengan warna ANSI
+     * Menampilkan layout kursi teater dengan format seperti [A1], [A2], dsb
+     * Sesuai dengan gambar yang user inginkan
      */
     public static void displaySeatLayout(Map<String, Boolean> seatMap, List<String> selectedSeats) {
-        System.out.println("\n" + "═".repeat(70));
-        System.out.println(BOLD + CYAN + "                    🎬 LAYOUT TEATER 🎬                       " + RESET);
-        System.out.println("═".repeat(70));
+        System.out.println("\n" + "═".repeat(80));
+        System.out.println(BOLD + CYAN + "                 LAYOUT KURSI BIOSKOP (5x5)                       " + RESET);
+        System.out.println("═".repeat(80));
         
         String[] rows = {"A", "B", "C", "D", "E"};
-        int[] columns = {1, 2, 3, 4, 5, 6, 7, 8};
-        
-        // Header dengan nomor kolom
-        System.out.print("        ");
-        for (int col : columns) {
-            System.out.print("  " + col + " ");
-        }
-        System.out.println();
-        System.out.println("     " + "┌─".repeat(columns.length) + "┐");
+        int[] columns = {1, 2, 3, 4, 5};
         
         // Tampilkan setiap baris kursi
         for (String row : rows) {
-            System.out.print(BOLD + row + RESET + "    │ ");
+            System.out.print(BOLD + row + RESET + "  |  ");
             for (int col : columns) {
                 String seatKey = row + col;
                 boolean isBooked = seatMap.getOrDefault(seatKey, false);
                 boolean isSelected = selectedSeats != null && selectedSeats.contains(seatKey);
                 
                 if (isSelected) {
-                    System.out.print(YELLOW + BOLD + SELECTED + RESET + " ");
+                    System.out.print(YELLOW + "[" + seatKey + "]" + RESET + " ");
                 } else if (isBooked) {
-                    System.out.print(RED + BOOKED + RESET + " ");
+                    System.out.print(RED + "[XX]" + RESET + " ");
                 } else {
-                    System.out.print(GREEN + AVAILABLE + RESET + " ");
+                    System.out.print(GREEN + "[" + seatKey + "]" + RESET + " ");
                 }
             }
-            System.out.println(" │");
+            System.out.println(" |");
         }
-        System.out.println("     " + "└─".repeat(columns.length) + "┘");
         
         // Layar teater
-        System.out.println("     " + "─".repeat(2 * columns.length) + "");
-        System.out.println(BOLD + CYAN + "                      📺 LAYAR TEATER 📺" + RESET);
-        System.out.println("═".repeat(70));
+        System.out.println("\n" + BOLD + CYAN + "                         📺 LAYAR TEATER 📺" + RESET);
+        System.out.println("═".repeat(80));
         
         // Legend
-        System.out.println("\n" + "Keterangan:");
-        System.out.println(GREEN + BOLD + AVAILABLE + RESET + " = Tersedia      " + 
-                          RED + BOLD + BOOKED + RESET + " = Dipesan      " + 
-                          YELLOW + BOLD + SELECTED + RESET + " = Dipilih");
-        System.out.println("═".repeat(70) + "\n");
+        System.out.println("\nKeterangan:");
+        System.out.println(GREEN + BOLD + "[A1]" + RESET + " = Kursi Tersedia    |    " + 
+                          RED + BOLD + "[XX]" + RESET + " = Terpesen    |    " + 
+                          YELLOW + BOLD + "[A1]" + RESET + " = Dipilih");
+        System.out.println("═".repeat(80) + "\n");
     }
 
     /**
-     * Menampilkan layout kursi teater (versi sederhana tanpa warna ANSI)
+     * Menampilkan layout kursi teater (versi sederhana tanpa warna ANSI) - 5x5
      * Cocok untuk terminal yang tidak support color
      */
     public static void displaySeatLayoutSimple(Map<String, Boolean> seatMap, List<String> selectedSeats) {
-        System.out.println("\n" + "═".repeat(65));
-        System.out.println("                      LAYOUT TEATER");
-        System.out.println("═".repeat(65));
+        System.out.println("\n" + "═".repeat(50));
+        System.out.println("                LAYOUT TEATER (5x5)");
+        System.out.println("═".repeat(50));
         
         String[] rows = {"A", "B", "C", "D", "E"};
-        int[] columns = {1, 2, 3, 4, 5, 6, 7, 8};
+        int[] columns = {1, 2, 3, 4, 5};
         
         // Header dengan nomor kolom
         System.out.print("     ");
@@ -203,6 +194,48 @@ public class SeatVisualizationUtil {
             }
         }
         return seatMap;
+    }
+
+    /**
+     * Generate seat grid sebagai String untuk ditampilkan
+     */
+    public String generateSeatGrid(Map<String, Boolean> seatMap) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n" + "═".repeat(80)).append("\n");
+        sb.append(BOLD + CYAN + "                 LAYOUT KURSI BIOSKOP (5x5)" + RESET).append("\n");
+        sb.append("═".repeat(80)).append("\n");
+        
+        String[] rows = {"A", "B", "C", "D", "E"};
+        int[] columns = {1, 2, 3, 4, 5};
+        
+        // Tampilkan setiap baris kursi
+        for (String row : rows) {
+            sb.append(BOLD).append(row).append(RESET).append("  |  ");
+            for (int col : columns) {
+                String seatKey = row + col;
+                boolean isBooked = seatMap.getOrDefault(seatKey, false);
+                
+                if (isBooked) {
+                    sb.append(RED).append("[XX]").append(RESET).append(" ");
+                } else {
+                    sb.append(GREEN).append("[").append(seatKey).append("]").append(RESET).append(" ");
+                }
+            }
+            sb.append(" |\n");
+        }
+        
+        // Layar teater
+        sb.append("\n" + BOLD + CYAN + "                         📺 LAYAR TEATER 📺" + RESET).append("\n");
+        sb.append("═".repeat(80)).append("\n");
+        
+        // Legend
+        sb.append("\nKeterangan:\n");
+        sb.append(GREEN + BOLD + "[A1]" + RESET + " = Kursi Tersedia    |    ");
+        sb.append(RED + BOLD + "[XX]" + RESET + " = Terpesen    |    ");
+        sb.append(YELLOW + BOLD + "[A1]" + RESET + " = Dipilih\n");
+        sb.append("═".repeat(80)).append("\n");
+        
+        return sb.toString();
     }
 }
 

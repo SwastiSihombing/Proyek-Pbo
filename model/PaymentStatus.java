@@ -20,4 +20,8 @@ public enum PaymentStatus {
     public String getDescription() {
         return description;
     }
+
+    public String getDisplayName() {
+        return description;
+    }
 }

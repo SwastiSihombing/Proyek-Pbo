@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.Map;
+import java.util.HashMap;
 
 import database.Database;
 
@@ -100,6 +102,68 @@ public class SeatMapper {
             stmt.executeUpdate();
         } catch (Exception e) {
             System.out.println("Update status kursi gagal");
+        }
+    }
+
+    public Map<String, Boolean> getSeatStatusBySchedule(int scheduleId) {
+        Map<String, Boolean> seatStatusMap = new HashMap<>();
+        try (Connection conn = Database.connect()) {
+            String sql = "SELECT seat_number, is_booked FROM seat WHERE schedule_id = ? ORDER BY seat_number";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, scheduleId);
+
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                String seatNumber = rs.getString("seat_number");
+                boolean isBooked = rs.getInt("is_booked") == 1;
+                seatStatusMap.put(seatNumber, isBooked);
+            }
+        } catch (Exception e) {
+            System.out.println("Ambil status kursi gagal: " + e.getMessage());
+        }
+        return seatStatusMap;
+    }
+
+    public void createSeatsForSchedule(int scheduleId) {
+        if (scheduleId <= 0) {
+            System.err.println("[ERROR] Buat kursi gagal: Schedule ID tidak valid!");
+            return;
+        }
+        
+        // Validate that schedule exists first
+        String checkSql = "SELECT id FROM schedule WHERE id = ?";
+        try (Connection conn = Database.connect();
+             PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+            checkStmt.setInt(1, scheduleId);
+            java.sql.ResultSet rs = checkStmt.executeQuery();
+            if (!rs.next()) {
+                System.err.println("[ERROR] Buat kursi gagal: Schedule dengan ID " + scheduleId + " tidak ditemukan!");
+                return;
+            }
+        } catch (Exception e) {
+            System.err.println("[ERROR] Validasi schedule gagal: " + e.getMessage());
+            return;
+        }
+        
+        String[] rows = {"A", "B", "C", "D", "E"};
+        int[] columns = {1, 2, 3, 4, 5};
+        
+        try (Connection conn = Database.connect()) {
+            String sql = "INSERT INTO seat(schedule_id, seat_number, is_booked) VALUES (?, ?, 0)";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+
+            for (String row : rows) {
+                for (int col : columns) {
+                    String seat = row + col;
+                    stmt.setInt(1, scheduleId);
+                    stmt.setString(2, seat);
+                    stmt.executeUpdate();
+                }
+            }
+            System.out.println("[INFO] Kursi 5x5 berhasil dibuat untuk jadwal ID: " + scheduleId);
+
+        } catch (Exception e) {
+            System.err.println("[ERROR] Buat kursi gagal: " + e.getMessage());
         }
     }
 }

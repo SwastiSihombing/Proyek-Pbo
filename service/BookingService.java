@@ -3,8 +3,9 @@ package service;
 import mapper.BookingMapper;
 import mapper.ScheduleMapper;
 import mapper.SeatMapper;
+import mapper.FilmMapper;
 import model.Booking;
-import model.OrderStatus;
+import model.Film;
 import util.SeatVisualizationUtil;
 
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ public class BookingService {
     private BookingMapper bookingMapper;
     private SeatMapper seatMapper;
     private ScheduleMapper scheduleMapper;
+    private FilmMapper filmMapper;
     private SeatVisualizationUtil seatVisualizationUtil;
     private Scanner scanner;
 
@@ -27,6 +29,7 @@ public class BookingService {
         this.bookingMapper = new BookingMapper();
         this.seatMapper = new SeatMapper();
         this.scheduleMapper = new ScheduleMapper();
+        this.filmMapper = new FilmMapper();
         this.seatVisualizationUtil = new SeatVisualizationUtil();
         this.scanner = new Scanner(System.in);
     }
@@ -125,7 +128,7 @@ public class BookingService {
         Booking booking = new Booking(customerId, customerName, selectedScheduleId);
         booking.getSelectedSeats().add(selectedSeat);
         booking.setTotalPrice(price);
-        booking.setStatus(OrderStatus.COMPLETED);
+        booking.setStatus(Booking.BookingStatus.PENDING);
 
         int bookingId = bookingMapper.createBooking(booking);
         
@@ -186,16 +189,130 @@ public class BookingService {
         System.out.println("        VISUALISASI KURSI BIOSKOP");
         System.out.println("=".repeat(60));
         
+        // Check if seats exist, if not create them
         Map<String, Boolean> seatStatus = seatMapper.getSeatStatusBySchedule(scheduleId);
         
         if (seatStatus.isEmpty()) {
-            System.out.println("[!] Kursi tidak ditemukan untuk jadwal ini.");
+            System.out.println("\n[i] Membuat kursi untuk jadwal ini...");
+            // Create 5x5 seats (A-E rows, 1-5 columns)
+            seatMapper.createSeatsForSchedule(scheduleId);
+            seatStatus = seatMapper.getSeatStatusBySchedule(scheduleId);
+        }
+
+        if (seatStatus.isEmpty()) {
+            System.out.println("[!] Gagal membuat kursi untuk jadwal ini.");
             return;
         }
 
-        System.out.println("\n" + seatVisualizationUtil.generateSeatGrid(seatStatus));
-        System.out.println("\n📌 KETERANGAN:");
-        System.out.println("  ● = Kursi tersedia");
-        System.out.println("  ✗ = Kursi sudah dipesan");
+        // Display seat layout with colors
+        java.util.List<String> selectedSeats = new ArrayList<>();
+        SeatVisualizationUtil.displaySeatLayout(seatStatus, selectedSeats);
+    }
+
+    // Tambahan methods untuk kompatibilitas dengan Main
+    public void displayAllFilmsForCustomer() {
+        List<Film> films = filmMapper.getAll();
+        if (films == null || films.isEmpty()) {
+            System.out.println("📋 Belum ada film yang tersedia.");
+            return;
+        }
+
+        System.out.println("\n" + "═".repeat(95));
+        System.out.println("                           📽️  DAFTAR FILM");
+        System.out.println("═".repeat(95));
+        
+        System.out.printf("| %-5s | %-25s | %-15s | %-10s | %-15s |%n", "ID", "Judul", "Genre", "Durasi", "Harga");
+        System.out.println("├" + "─".repeat(5) + "┼" + "─".repeat(27) + "┼" + "─".repeat(17) + "┼" + "─".repeat(12) + "┼" + "─".repeat(17) + "┤");
+        
+        for (Film film : films) {
+            System.out.printf("| %-5d | %-25s | %-15s | %-10d | Rp %,10.0f |%n",
+                film.getId(),
+                truncate(film.getJudul(), 25),
+                truncate(film.getGenre(), 15),
+                film.getDurasi(),
+                film.getPrice());
+        }
+        System.out.println("═".repeat(95));
+    }
+
+    public void displaySchedulesByFilm(int filmId) {
+        // Fetch fresh data from database for real-time updates
+        Map<Integer, String> scheduleMap = scheduleMapper.getAllScheduleAsMapByFilm(filmId);
+        
+        System.out.println("\n" + "═".repeat(70));
+        System.out.println(centerText("JADWAL TAYANG", 70));
+        System.out.println("═".repeat(70));
+        
+        if (scheduleMap == null || scheduleMap.isEmpty()) {
+            System.out.println("[!] Belum ada jadwal yang tersedia untuk film ini.");
+            System.out.println("    Silakan minta Admin untuk membuat jadwal baru.");
+            System.out.println("═".repeat(70));
+            return;
+        }
+
+        System.out.printf("[info] Total jadwal tersedia: %d%n%n", scheduleMap.size());
+        scheduleMap.forEach((id, schedule) -> 
+            System.out.println("  " + schedule)
+        );
+        System.out.println("═".repeat(70));
+    }
+
+    public void displaySeatGrid(int scheduleId) {
+        viewSeatsForSchedule(scheduleId);
+    }
+
+    public int bookTicket(String customerName, int scheduleId, String seatNumber, double price) {
+        Booking booking = new Booking();
+        booking.setCustomerName(customerName);
+        booking.setScheduleId(scheduleId);
+        booking.setSeatNumber(seatNumber);
+        booking.setTotalPrice(price);
+        booking.setStatus(Booking.BookingStatus.PENDING);
+        booking.getSelectedSeats().add(seatNumber);
+
+        int bookingId = bookingMapper.createBooking(booking);
+        
+        if (bookingId > 0) {
+            seatMapper.updateSeatStatus(scheduleId, seatNumber, true);
+            System.out.println("✅ Tiket berhasil dipesan!");
+            return bookingId;
+        } else {
+            System.out.println("❌ Gagal memesan tiket!");
+            return -1;
+        }
+    }
+
+    public void displayBooking(int bookingId) {
+        Booking booking = bookingMapper.findById(bookingId);
+        
+        if (booking == null) {
+            System.out.println("❌ Booking dengan ID " + bookingId + " tidak ditemukan!");
+            return;
+        }
+
+        System.out.println("\n" + "═".repeat(60));
+        System.out.println("                DETAIL PEMESANAN");
+        System.out.println("═".repeat(60));
+        System.out.printf("ID Booking: %d%n", booking.getId());
+        System.out.printf("Nama: %s%n", booking.getCustomerName());
+        System.out.printf("Jadwal ID: %d%n", booking.getScheduleId());
+        System.out.printf("Kursi: %s%n", String.join(", ", booking.getSelectedSeats()));
+        System.out.printf("Total: Rp %,.0f%n", booking.getTotalPrice());
+        System.out.printf("Status: %s%n", booking.getStatus().getDisplayName());
+        System.out.println("═".repeat(60));
+    }
+
+    private String truncate(String str, int maxLength) {
+        if (str == null) return "";
+        if (str.length() <= maxLength) return str;
+        return str.substring(0, maxLength - 3) + "...";
+    }
+
+    private String centerText(String text, int width) {
+        if (text == null) text = "";
+        int totalPadding = width - text.length();
+        int leftPadding = totalPadding / 2;
+        int rightPadding = totalPadding - leftPadding;
+        return " ".repeat(Math.max(0, leftPadding)) + text + " ".repeat(Math.max(0, rightPadding));
     }
 }

@@ -9,6 +9,7 @@ public enum PaymentMethod {
     DEBIT_CARD("Kartu Debit"),
     E_WALLET("E-Wallet"),
     TRANSFER("Transfer Bank"),
+    TRANSFER_BANK("Transfer Bank"),  // alias for TRANSFER
     QRIS("QRIS");
 
     private final String description;
@@ -18,6 +19,10 @@ public enum PaymentMethod {
     }
 
     public String getDescription() {
+        return description;
+    }
+
+    public String getDisplayName() {
         return description;
     }
 }

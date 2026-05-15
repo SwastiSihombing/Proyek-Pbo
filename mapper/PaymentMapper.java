@@ -166,4 +166,28 @@ public class PaymentMapper extends BaseMapper {
         payment.setPaymentDate(paymentDate);
         return payment;
     }
+
+    // Alias untuk getAll
+    public List<Payment> getAll() {
+        return findAll();
+    }
+
+    // Cari pembayaran berdasarkan status
+    public List<Payment> findByStatus(PaymentStatus status) {
+        List<Payment> payments = new ArrayList<>();
+        String sql = "SELECT * FROM payments WHERE status = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, status.name());
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                payments.add(mapResultSetToPayment(rs));
+            }
+        } catch (SQLException e) {
+            logError("Find payments by status", e.getMessage());
+        }
+        return payments;
+    }
 }

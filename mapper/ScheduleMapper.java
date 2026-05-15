@@ -1,20 +1,32 @@
 package mapper;
 
 import database.Database;
+import model.Schedule;
+import model.Film;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ScheduleMapper {
 
     public int insert(int filmId, String date, String time, String studio, double price) {
+        return insert(filmId, date, time, null, null, studio, price);
+    }
+
+    public int insert(int filmId, String date, String time, String startDate, String endDate, String studio, double price) {
         try (Connection conn = Database.connect()) {
-            String sql = "INSERT INTO schedule(film_id, date, time, studio, price) VALUES (?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO schedule(film_id, date, time, startDate, endDate, studio, price) VALUES (?, ?, ?, ?, ?, ?, ?)";
             PreparedStatement stmt = conn.prepareStatement(sql);
 
             stmt.setInt(1, filmId);
             stmt.setString(2, date);
             stmt.setString(3, time);
-            stmt.setString(4, studio);
-            stmt.setDouble(5, price);
+            stmt.setString(4, startDate);
+            stmt.setString(5, endDate);
+            stmt.setString(6, studio);
+            stmt.setDouble(7, price);
             
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected == 0) {
@@ -32,6 +44,7 @@ public class ScheduleMapper {
                     return -1;
                 }
                 System.out.println("[INFO] Jadwal berhasil disimpan dengan ID: " + scheduleId);
+                System.out.println("✅ Jadwal berhasil ditambahkan. ID: " + scheduleId);
                 return scheduleId;
             }
 
@@ -191,5 +204,186 @@ public class ScheduleMapper {
         } catch (Exception e) {
             System.err.println("[ERROR] Perpanjang jadwal gagal: " + e.getMessage());
         }
+    }
+
+    // Tambahan methods yang diperlukan
+    public Schedule findById(int scheduleId) {
+        String sql = "SELECT * FROM schedule WHERE id = ?";
+        try (Connection conn = Database.connect();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, scheduleId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                Schedule s = new Schedule();
+                s.setId(rs.getInt("id"));
+                s.setFilmId(rs.getInt("film_id"));
+                s.setPrice(rs.getDouble("price"));
+                return s;
+            }
+        } catch (Exception e) {
+            System.out.println("Cari jadwal gagal: " + e.getMessage());
+        }
+        return null;
+    }
+
+    public int save(Schedule schedule) {
+        // Jika sudah memiliki ID, lakukan update
+        if (schedule.getId() > 0) {
+            String sql = "UPDATE schedule SET film_id = ?, date = ?, time = ?, studio = ?, price = ? WHERE id = ?";
+            try (Connection conn = Database.connect();
+                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, schedule.getFilmId());
+                stmt.setString(2, schedule.getDate() != null ? schedule.getDate().toString() : "");
+                stmt.setString(3, schedule.getTime() != null ? schedule.getTime().toString() : "");
+                stmt.setString(4, schedule.getStudio());
+                stmt.setDouble(5, schedule.getPrice());
+                stmt.setInt(6, schedule.getId());
+                stmt.executeUpdate();
+                return schedule.getId();
+            } catch (Exception e) {
+                System.out.println("Update jadwal gagal: " + e.getMessage());
+            }
+        }
+        // Jika tidak memiliki ID, lakukan insert
+        return insert(schedule.getFilmId(), 
+                     schedule.getDate() != null ? schedule.getDate().toString() : "",
+                     schedule.getTime() != null ? schedule.getTime().toString() : "",
+                     schedule.getStudio(),
+                     schedule.getPrice());
+    }
+
+    public List<Schedule> getAll() {
+        List<Schedule> schedules = new ArrayList<>();
+        String sql = "SELECT * FROM schedule";
+        try (Connection conn = Database.connect();
+             Statement stmt = conn.createStatement()) {
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                Schedule s = new Schedule();
+                s.setId(rs.getInt("id"));
+                s.setFilmId(rs.getInt("film_id"));
+                
+                // Set date and time fields
+                String dateStr = rs.getString("date");
+                String timeStr = rs.getString("time");
+                if (dateStr != null && !dateStr.isEmpty()) {
+                    try {
+                        s.setDate(java.time.LocalDate.parse(dateStr));
+                    } catch (Exception ex) {
+                        s.setDate(null);
+                    }
+                }
+                if (timeStr != null && !timeStr.isEmpty()) {
+                    try {
+                        s.setTime(java.time.LocalTime.parse(timeStr));
+                    } catch (Exception ex) {
+                        s.setTime(null);
+                    }
+                }
+                
+                // Set other fields
+                s.setStudio(rs.getString("studio"));
+                s.setPrice(rs.getDouble("price"));
+                
+                String startDateStr = rs.getString("startDate");
+                if (startDateStr != null && !startDateStr.isEmpty()) {
+                    try {
+                        s.setStartDate(java.time.LocalDate.parse(startDateStr));
+                    } catch (Exception ex) {
+                        s.setStartDate(null);
+                    }
+                }
+                
+                String endDateStr = rs.getString("endDate");
+                if (endDateStr != null && !endDateStr.isEmpty()) {
+                    try {
+                        s.setEndDate(java.time.LocalDate.parse(endDateStr));
+                    } catch (Exception ex) {
+                        s.setEndDate(null);
+                    }
+                }
+                
+                schedules.add(s);
+            }
+        } catch (Exception e) {
+            System.out.println("Ambil semua jadwal gagal: " + e.getMessage());
+        }
+        return schedules;
+    }
+
+    public Map<Integer, String> getAllScheduleAsMap() {
+        Map<Integer, String> scheduleMap = new HashMap<>();
+        String sql = "SELECT s.id, f.title, s.date, s.time, s.startDate, s.endDate, s.studio, s.price FROM schedule s JOIN film f ON s.film_id = f.id ORDER BY s.date, s.time";
+        try (Connection conn = Database.connect();
+             Statement stmt = conn.createStatement()) {
+            // Ensure we get fresh data from database
+            if (conn != null) {
+                conn.setAutoCommit(true);
+            }
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String title = rs.getString("title");
+                String date = rs.getString("date");
+                String time = rs.getString("time");
+                String startDate = rs.getString("startDate");
+                String endDate = rs.getString("endDate");
+                String studio = rs.getString("studio");
+                double price = rs.getDouble("price");
+                String info = String.format("[ID:%d] %s %s (%s) - Rp %,.0f (Tayang: %s s/d %s)", id, date, time, studio, price, startDate, endDate);
+                scheduleMap.put(id, info);
+            }
+        } catch (Exception e) {
+            System.out.println("Ambil jadwal sebagai Map gagal: " + e.getMessage());
+        }
+        return scheduleMap;
+    }
+
+    public Map<Integer, String> getAllScheduleAsMapByFilm(int filmId) {
+        Map<Integer, String> scheduleMap = new HashMap<>();
+        String sql = "SELECT s.id, f.title, s.date, s.time, s.startDate, s.endDate, s.studio, s.price FROM schedule s JOIN film f ON s.film_id = f.id WHERE s.film_id = ? ORDER BY s.date, s.time";
+        try (Connection conn = Database.connect();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            // Ensure we get fresh data from database
+            if (conn != null) {
+                conn.setAutoCommit(true);
+            }
+            stmt.setInt(1, filmId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String title = rs.getString("title");
+                String date = rs.getString("date");
+                String time = rs.getString("time");
+                String startDate = rs.getString("startDate");
+                String endDate = rs.getString("endDate");
+                String studio = rs.getString("studio");
+                double price = rs.getDouble("price");
+                String info = String.format("[ID:%d] %s %s (%s) - Rp %,.0f (Tayang: %s s/d %s)", id, date, time, studio, price, startDate, endDate);
+                scheduleMap.put(id, info);
+            }
+        } catch (Exception e) {
+            System.out.println("Ambil jadwal berdasarkan film gagal: " + e.getMessage());
+        }
+        return scheduleMap;
+    }
+
+    public double getPriceByScheduleId(int scheduleId) {
+        return findPriceById(scheduleId);
+    }
+
+    public String getScheduleById(int scheduleId) {
+        String sql = "SELECT date, time FROM schedule WHERE id = ?";
+        try (Connection conn = Database.connect();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, scheduleId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("date") + " " + rs.getString("time");
+            }
+        } catch (Exception e) {
+            System.out.println("Ambil jadwal gagal: " + e.getMessage());
+        }
+        return null;
     }
 }

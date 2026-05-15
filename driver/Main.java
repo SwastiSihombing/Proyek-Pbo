@@ -1,4 +1,4 @@
-package main;
+package driver;
 
 import database.Database;
 import mapper.*;
@@ -158,7 +158,16 @@ public class Main {
         System.out.print("Durasi (menit): ");
         int duration = getIntInput("");
 
-        adminService.addFilm(title, genre, duration);
+        System.out.print("Waktu Tayang (HH:mm): ");
+        String showtime = input.nextLine();
+
+        System.out.print("Waktu Akhir Tayang (HH:mm): ");
+        String endShowtime = input.nextLine();
+
+        System.out.print("Harga (Rp): ");
+        double price = getDoubleInput("");
+
+        adminService.addFilm(title, genre, duration, showtime, endShowtime, price);
     }
 
     private static void buatJadwalMenu() {
@@ -171,11 +180,17 @@ public class Main {
         System.out.print("\nPilih ID Film: ");
         int filmId = getIntInput("");
 
-        System.out.print("Tanggal (YYYY-MM-DD): ");
+        System.out.print("Tanggal Tayang (YYYY-MM-DD): ");
         String date = input.nextLine();
 
-        System.out.print("Jam Tayang (HH:MM): ");
+        System.out.print("Jam Tayang (HH:mm): ");
         String time = input.nextLine();
+
+        System.out.print("Tanggal Mulai Penayangan (YYYY-MM-DD): ");
+        String startDate = input.nextLine();
+
+        System.out.print("Tanggal Akhir Penayangan (YYYY-MM-DD): ");
+        String endDate = input.nextLine();
 
         System.out.print("Studio: ");
         String studio = input.nextLine();
@@ -183,7 +198,7 @@ public class Main {
         System.out.print("Harga Tiket (Rp): ");
         double price = getDoubleInput("");
 
-        adminService.createSchedule(filmId, date, time, studio, price);
+        adminService.createSchedule(filmId, date, time, startDate, endDate, studio, price);
     }
 
     private static void updateJadwalMenu() {
@@ -274,13 +289,23 @@ public class Main {
             System.out.print("Pilih (1-4): ");
             
             int paymentChoice = getIntInput("");
-            PaymentMethod method = switch (paymentChoice) {
-                case 1 -> PaymentMethod.TRANSFER;
-                case 2 -> PaymentMethod.E_WALLET;
-                case 3 -> PaymentMethod.CASH;
-                case 4 -> PaymentMethod.CREDIT_CARD;
-                default -> PaymentMethod.TRANSFER;
-            };
+            PaymentMethod method;
+            switch (paymentChoice) {
+                case 1:
+                    method = PaymentMethod.TRANSFER;
+                    break;
+                case 2:
+                    method = PaymentMethod.E_WALLET;
+                    break;
+                case 3:
+                    method = PaymentMethod.CASH;
+                    break;
+                case 4:
+                    method = PaymentMethod.CREDIT_CARD;
+                    break;
+                default:
+                    method = PaymentMethod.TRANSFER;
+            }
 
             // Process payment
             paymentService.processPayment(bookingId, method);

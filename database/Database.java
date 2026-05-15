@@ -24,7 +24,6 @@ public class Database {
             Connection conn = DriverManager.getConnection(URL);
             // Enable foreign keys for SQLite
             conn.createStatement().execute("PRAGMA foreign_keys = ON");
-            System.out.println("Koneksi ke database berhasil");
             return conn;
         } catch (Exception e) {
             System.err.println("Error: Koneksi database gagal");
@@ -54,10 +53,13 @@ public class Database {
 
             // Tabel Film
             stmt.execute("CREATE TABLE IF NOT EXISTS film (" +
-                    "id INTEGER PRIMARY KEY, " +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "title TEXT NOT NULL, " +
                     "genre TEXT, " +
-                    "duration INTEGER" +
+                    "duration INTEGER, " +
+                    "showtime TEXT, " +
+                    "endShowtime TEXT, " +
+                    "price REAL DEFAULT 0" +
                     ")");
 
             // Tabel Schedule
@@ -66,6 +68,8 @@ public class Database {
                     "film_id INTEGER NOT NULL, " +
                     "date TEXT, " +
                     "time TEXT, " +
+                    "startDate TEXT, " +
+                    "endDate TEXT, " +
                     "studio TEXT, " +
                     "price REAL DEFAULT 0, " +
                     "FOREIGN KEY (film_id) REFERENCES film(id)" +
@@ -88,9 +92,13 @@ public class Database {
                     "customer_name TEXT NOT NULL, " +
                     "schedule_id INTEGER NOT NULL, " +
                     "seat_number TEXT, " +
+                    "total_price REAL DEFAULT 0, " +
+                    "status TEXT DEFAULT 'PENDING', " +
                     "booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
                     "FOREIGN KEY (schedule_id) REFERENCES schedule(id)" +
                     ")");
+            addColumnIfMissing(stmt, "booking", "total_price", "REAL DEFAULT 0");
+            addColumnIfMissing(stmt, "booking", "status", "TEXT DEFAULT 'PENDING'");
 
             // Tabel Payment
             stmt.execute("CREATE TABLE IF NOT EXISTS payments (" +
@@ -133,10 +141,22 @@ public class Database {
             stmt.execute("DELETE FROM film");
             
             System.out.println("Menambahkan film baru...");
-            stmt.execute("INSERT INTO film(id, title, genre, duration) VALUES (1, 'Avengers Last Game', 'Action', 180)");
-            stmt.execute("INSERT INTO film(id, title, genre, duration) VALUES (2, 'Conjuring 3', 'Horror', 126)");
+            stmt.execute("INSERT INTO film(title, genre, duration, showtime, endShowtime, price) VALUES ('Avengers Last Game', 'Action', 180, '13:00', '16:00', 75000)");
+            stmt.execute("INSERT INTO film(title, genre, duration, showtime, endShowtime, price) VALUES ('Conjuring 3', 'Horror', 126, '19:00', '21:06', 75000)");
             
-            System.out.println("Data film berhasil di-reset!");
+            // Hapus jadwal lama dan buat jadwal baru untuk setiap film
+            System.out.println("Menambahkan jadwal tayang...");
+            stmt.execute("DELETE FROM schedule");
+            
+            // Jadwal untuk Avengers Last Game (ID 1)
+            stmt.execute("INSERT INTO schedule(film_id, date, time, startDate, endDate, studio, price) VALUES (1, '2026-05-15', '13:00', '2026-05-15', '2026-05-31', 'Studio A', 75000)");
+            stmt.execute("INSERT INTO schedule(film_id, date, time, startDate, endDate, studio, price) VALUES (1, '2026-05-15', '16:00', '2026-05-15', '2026-05-31', 'Studio B', 75000)");
+            
+            // Jadwal untuk Conjuring 3 (ID 2)
+            stmt.execute("INSERT INTO schedule(film_id, date, time, startDate, endDate, studio, price) VALUES (2, '2026-05-15', '19:00', '2026-05-15', '2026-05-31', 'Studio A', 75000)");
+            stmt.execute("INSERT INTO schedule(film_id, date, time, startDate, endDate, studio, price) VALUES (2, '2026-05-15', '21:30', '2026-05-15', '2026-05-31', 'Studio B', 75000)");
+            
+            System.out.println("✅ Data film dan jadwal berhasil di-reset!");
             
         } catch (Exception e) {
             System.err.println("Error: Seeding data gagal");

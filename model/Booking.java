@@ -2,6 +2,8 @@ package model;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class Booking untuk merepresentasikan pemesanan tiket
@@ -11,6 +13,7 @@ public class Booking extends BaseEntity {
     private String customerName;
     private int scheduleId;
     private String seatNumber;
+    private List<String> selectedSeats;  // untuk menyimpan multiple seats
     private double totalPrice;
     private BookingStatus status;
     private String bookingDate;
@@ -39,6 +42,7 @@ public class Booking extends BaseEntity {
     public Booking() {
         super();
         this.status = BookingStatus.PENDING;
+        this.selectedSeats = new ArrayList<>();
     }
 
     public Booking(int id, String customerName, int scheduleId, String seatNumber, double totalPrice) {
@@ -48,6 +52,18 @@ public class Booking extends BaseEntity {
         this.seatNumber = seatNumber;
         this.totalPrice = totalPrice;
         this.status = BookingStatus.PENDING;
+        this.selectedSeats = new ArrayList<>();
+        this.selectedSeats.add(seatNumber);
+        this.bookingDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+    }
+
+    // Constructor tambahan untuk kompatibilitas
+    public Booking(int customerId, String customerName, int scheduleId) {
+        super();
+        this.customerName = customerName;
+        this.scheduleId = scheduleId;
+        this.status = BookingStatus.PENDING;
+        this.selectedSeats = new ArrayList<>();
         this.bookingDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
 
@@ -97,6 +113,14 @@ public class Booking extends BaseEntity {
 
     public void setBookingDate(String bookingDate) {
         this.bookingDate = bookingDate;
+    }
+
+    public List<String> getSelectedSeats() {
+        return selectedSeats;
+    }
+
+    public void setSelectedSeats(List<String> selectedSeats) {
+        this.selectedSeats = selectedSeats;
     }
 
     @Override

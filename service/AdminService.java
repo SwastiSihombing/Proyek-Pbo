@@ -30,11 +30,14 @@ public class AdminService {
     /**
      * Tambah film baru
      */
-    public Film addFilm(String judul, String genre, int durasi) {
+    public Film addFilm(String judul, String genre, int durasi, String showtime, String endShowtime, double price) {
         Film film = new Film();
         film.setJudul(judul);
         film.setGenre(genre);
         film.setDurasi(durasi);
+        film.setShowtime(showtime);
+        film.setEndShowtime(endShowtime);
+        film.setPrice(price);
         
         int filmId = filmMapper.save(film);
         if (filmId > 0) {
@@ -114,10 +117,16 @@ public class AdminService {
         
         for (Schedule schedule : schedules) {
             String filmTitle = getFilmTitleById(schedule.getFilmId(), films);
-            System.out.printf("| %-5d | %-25s | %-20s | Rp %9,.0f |%n",
+            String waktuStr = "N/A";
+            if (schedule.getWaktu() != null) {
+                waktuStr = schedule.getWaktu().format(java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
+            } else if (schedule.getDate() != null && schedule.getTime() != null) {
+                waktuStr = String.format("%s %s", schedule.getDate(), schedule.getTime());
+            }
+            System.out.printf("| %-5d | %-25s | %-20s | Rp %,10.0f |%n",
                 schedule.getId(),
                 truncate(filmTitle, 25),
-                schedule.getWaktu().format(java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")),
+                waktuStr,
                 schedule.getHarga());
         }
         System.out.println("═".repeat(90));
@@ -173,7 +182,7 @@ public class AdminService {
             for (Booking booking : bookings) {
                 totalSeats += booking.getSelectedSeats().size();
                 totalRevenue += booking.getTotalPrice();
-                if (booking.getStatus() == OrderStatus.CONFIRMED) {
+                if (booking.getStatus() == Booking.BookingStatus.CONFIRMED) {
                     confirmedBookings++;
                 }
             }
@@ -218,5 +227,60 @@ public class AdminService {
         if (str == null) return "";
         if (str.length() <= maxLength) return str;
         return str.substring(0, maxLength - 3) + "...";
+    }
+
+    // Alias methods untuk kompatibilitas dengan Main
+    public void displayAllFilms() {
+        showFilmReport();
+    }
+
+    public void displayAllSchedules() {
+        showScheduleReport();
+    }
+
+    public void createSchedule(int filmId, String date, String time, String startDate, String endDate, String studio, double price) {
+        try {
+            java.time.LocalDate localDate = java.time.LocalDate.parse(date);
+            java.time.LocalTime localTime = java.time.LocalTime.parse(time);
+            java.time.LocalDate localStartDate = java.time.LocalDate.parse(startDate);
+            java.time.LocalDate localEndDate = java.time.LocalDate.parse(endDate);
+            
+            LocalDateTime waktu = LocalDateTime.of(localDate, localTime);
+            
+            // Use insert dengan startDate dan endDate
+            int scheduleId = scheduleMapper.insert(filmId, date, time, startDate, endDate, studio, price);
+            if (scheduleId > 0) {
+                System.out.println("✅ Jadwal berhasil ditambahkan. ID: " + scheduleId);
+            } else {
+                System.err.println("❌ Error: Gagal menambahkan jadwal!");
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Error parsing tanggal/jam: " + e.getMessage());
+        }
+    }
+
+    public void createSchedule(int filmId, String date, String time, String studio, double price) {
+        createSchedule(filmId, date, time, date, date, studio, price);
+    }
+
+    public void updateSchedule(int scheduleId, String date, String time, String studio, double price) {
+        try {
+            scheduleMapper.updateScheduleAll(scheduleId, date, time, studio);
+            // Update harga dengan method yang ada
+            String sql = "UPDATE schedule SET price = ? WHERE id = ?";
+            try (java.sql.Connection conn = database.Database.connect();
+                 java.sql.PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setDouble(1, price);
+                stmt.setInt(2, scheduleId);
+                int rowsAffected = stmt.executeUpdate();
+                if (rowsAffected > 0) {
+                    System.out.println("✅ Jadwal berhasil diupdate!");
+                } else {
+                    System.err.println("❌ Jadwal dengan ID " + scheduleId + " tidak ditemukan!");
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Error: Gagal update jadwal: " + e.getMessage());
+        }
     }
 }

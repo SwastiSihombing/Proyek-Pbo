@@ -2,6 +2,7 @@ package model;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 /**
  * Entity untuk representasi Jadwal Film di teater
@@ -9,12 +10,15 @@ import java.time.LocalTime;
  */
 public class Schedule extends BaseEntity {
     private Film film;
+    private int filmId;  // untuk menyimpan film ID saat perlu
     private LocalDate date;
     private LocalTime time;
+    private LocalDate startDate;   // Tanggal mulai penayangan
+    private LocalDate endDate;     // Tanggal akhir penayangan
     private String studio;
     private double price;
-    private int totalSeats;
-    private int availableSeats;
+    private int totalSeats = 25;   // 5 rows x 5 columns
+    private int availableSeats = 25;
 
     public Schedule() {
         super();
@@ -27,8 +31,8 @@ public class Schedule extends BaseEntity {
         this.time = time;
         this.studio = studio;
         this.price = price;
-        this.totalSeats = 15; // 3 rows x 5 columns
-        this.availableSeats = 15;
+        this.totalSeats = 25; // 5 rows x 5 columns
+        this.availableSeats = 25;
     }
 
     public Schedule(Film film, LocalDate date, LocalTime time, String studio, double price) {
@@ -38,8 +42,8 @@ public class Schedule extends BaseEntity {
         this.time = time;
         this.studio = studio;
         this.price = price;
-        this.totalSeats = 15;
-        this.availableSeats = 15;
+        this.totalSeats = 25;
+        this.availableSeats = 25;
     }
 
     // Getters and Setters
@@ -75,6 +79,22 @@ public class Schedule extends BaseEntity {
         this.studio = studio;
     }
 
+    public LocalDate getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
+
     public double getPrice() {
         return price;
     }
@@ -101,6 +121,41 @@ public class Schedule extends BaseEntity {
 
     public int getBookedSeats() {
         return totalSeats - availableSeats;
+    }
+
+    // Indonesian aliases and additional methods for compatibility
+    public int getFilmId() {
+        return filmId;
+    }
+
+    public void setFilmId(int filmId) {
+        this.filmId = filmId;
+    }
+
+    public LocalDateTime getWaktu() {
+        if (date != null && time != null) {
+            return LocalDateTime.of(date, time);
+        }
+        return null;
+    }
+
+    public void setWaktu(LocalDateTime waktu) {
+        if (waktu != null) {
+            this.date = waktu.toLocalDate();
+            this.time = waktu.toLocalTime();
+        }
+    }
+
+    public double getHarga() {
+        return getPrice();
+    }
+
+    public void setHarga(double harga) {
+        setPrice(harga);
+    }
+
+    public String getFilmTitle() {
+        return film != null ? film.getTitle() : null;
     }
 
     @Override
