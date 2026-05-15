@@ -1,52 +1,54 @@
 package model;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
- * Entity untuk representasi pemesanan tiket
- * Hanya menghandle seat selection, TIDAK termasuk payment
- * Payment dihandle oleh Payment entity secara terpisah
+ * Class Booking untuk merepresentasikan pemesanan tiket
+ * Relationship: Satu Customer dapat memiliki banyak Booking
  */
 public class Booking extends BaseEntity {
-    private int customerId;
     private String customerName;
     private int scheduleId;
-    private List<String> selectedSeats;  // List untuk menyimpan seats (A1, A2, dst)
+    private String seatNumber;
     private double totalPrice;
-    private OrderStatus status;
+    private BookingStatus status;
+    private String bookingDate;
+
+    public enum BookingStatus {
+        PENDING("Menunggu Pembayaran"),
+        CONFIRMED("Terkonfirmasi"),
+        CANCELLED("Dibatalkan");
+
+        private final String displayName;
+
+        BookingStatus(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        @Override
+        public String toString() {
+            return displayName;
+        }
+    }
 
     public Booking() {
         super();
-        this.selectedSeats = new ArrayList<>();
-        this.status = OrderStatus.PENDING;
+        this.status = BookingStatus.PENDING;
     }
 
-    public Booking(int id, int customerId, String customerName, int scheduleId) {
+    public Booking(int id, String customerName, int scheduleId, String seatNumber, double totalPrice) {
         super(id);
-        this.customerId = customerId;
         this.customerName = customerName;
         this.scheduleId = scheduleId;
-        this.selectedSeats = new ArrayList<>();
-        this.status = OrderStatus.PENDING;
-    }
-
-    public Booking(int customerId, String customerName, int scheduleId) {
-        super();
-        this.customerId = customerId;
-        this.customerName = customerName;
-        this.scheduleId = scheduleId;
-        this.selectedSeats = new ArrayList<>();
-        this.status = OrderStatus.PENDING;
-    }
-
-    // Getters and Setters
-    public int getCustomerId() {
-        return customerId;
-    }
-
-    public void setCustomerId(int customerId) {
-        this.customerId = customerId;
+        this.seatNumber = seatNumber;
+        this.totalPrice = totalPrice;
+        this.status = BookingStatus.PENDING;
+        this.bookingDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
 
     public String getCustomerName() {
@@ -65,26 +67,12 @@ public class Booking extends BaseEntity {
         this.scheduleId = scheduleId;
     }
 
-    public List<String> getSelectedSeats() {
-        return selectedSeats;
+    public String getSeatNumber() {
+        return seatNumber;
     }
 
-    public void setSelectedSeats(List<String> selectedSeats) {
-        this.selectedSeats = selectedSeats;
-    }
-
-    public void addSeat(String seatNumber) {
-        if (!selectedSeats.contains(seatNumber)) {
-            selectedSeats.add(seatNumber);
-        }
-    }
-
-    public void removeSeat(String seatNumber) {
-        selectedSeats.remove(seatNumber);
-    }
-
-    public int getNumberOfSeats() {
-        return selectedSeats.size();
+    public void setSeatNumber(String seatNumber) {
+        this.seatNumber = seatNumber;
     }
 
     public double getTotalPrice() {
@@ -95,24 +83,25 @@ public class Booking extends BaseEntity {
         this.totalPrice = totalPrice;
     }
 
-    public OrderStatus getStatus() {
+    public BookingStatus getStatus() {
         return status;
     }
 
-    public void setStatus(OrderStatus status) {
+    public void setStatus(BookingStatus status) {
         this.status = status;
+    }
+
+    public String getBookingDate() {
+        return bookingDate;
+    }
+
+    public void setBookingDate(String bookingDate) {
+        this.bookingDate = bookingDate;
     }
 
     @Override
     public String toString() {
-        return "Booking{" +
-                "id=" + id +
-                ", customerId=" + customerId +
-                ", customerName='" + customerName + '\'' +
-                ", scheduleId=" + scheduleId +
-                ", selectedSeats=" + selectedSeats +
-                ", totalPrice=" + totalPrice +
-                ", status=" + status.getDescription() +
-                '}';
+        return String.format("Booking{id=%d, customer='%s', schedule=%d, seat='%s', price=Rp%.0f, status=%s}", 
+            id, customerName, scheduleId, seatNumber, totalPrice, status);
     }
 }
