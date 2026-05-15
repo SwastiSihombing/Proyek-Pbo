@@ -217,7 +217,12 @@ public class ScheduleMapper {
                 Schedule s = new Schedule();
                 s.setId(rs.getInt("id"));
                 s.setFilmId(rs.getInt("film_id"));
+                s.setDate(java.time.LocalDate.parse(rs.getString("date")));
+                s.setTime(java.time.LocalTime.parse(rs.getString("time")));
+                s.setStudio(rs.getString("studio"));
                 s.setPrice(rs.getDouble("price"));
+                s.setStartDate(rs.getString("startDate") != null ? java.time.LocalDate.parse(rs.getString("startDate")) : null);
+                s.setEndDate(rs.getString("endDate") != null ? java.time.LocalDate.parse(rs.getString("endDate")) : null);
                 return s;
             }
         } catch (Exception e) {

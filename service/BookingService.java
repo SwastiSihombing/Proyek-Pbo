@@ -6,6 +6,7 @@ import mapper.SeatMapper;
 import mapper.FilmMapper;
 import model.Booking;
 import model.Film;
+import model.Schedule;
 import util.SeatVisualizationUtil;
 
 import java.util.ArrayList;
@@ -282,6 +283,51 @@ public class BookingService {
         }
     }
 
+    /**
+     * Book multiple seats untuk satu jadwal
+     * @param customerName Nama customer
+     * @param scheduleId ID jadwal
+     * @param selectedSeats List kursi yang dipilih
+     * @param totalPrice Total harga untuk semua kursi
+     * @return Booking ID jika berhasil, -1 jika gagal
+     */
+    public int bookMultipleSeats(String customerName, int scheduleId, List<String> selectedSeats, double totalPrice) {
+        if (selectedSeats == null || selectedSeats.isEmpty()) {
+            System.out.println("❌ Tidak ada kursi yang dipilih!");
+            return -1;
+        }
+
+        Booking booking = new Booking();
+        booking.setCustomerName(customerName);
+        booking.setScheduleId(scheduleId);
+        booking.setTotalPrice(totalPrice);
+        booking.setStatus(Booking.BookingStatus.PENDING);
+        
+        // Add all selected seats
+        for (String seat : selectedSeats) {
+            booking.getSelectedSeats().add(seat);
+        }
+        
+        // Set first seat as default
+        if (!selectedSeats.isEmpty()) {
+            booking.setSeatNumber(selectedSeats.get(0));
+        }
+
+        int bookingId = bookingMapper.createBooking(booking);
+        
+        if (bookingId > 0) {
+            // Update all seats status
+            for (String seat : selectedSeats) {
+                seatMapper.updateSeatStatus(scheduleId, seat, true);
+            }
+            System.out.println("✅ Tiket berhasil dipesan untuk " + selectedSeats.size() + " kursi!");
+            return bookingId;
+        } else {
+            System.out.println("❌ Gagal memesan tiket!");
+            return -1;
+        }
+    }
+
     public void displayBooking(int bookingId) {
         Booking booking = bookingMapper.findById(bookingId);
         
@@ -290,16 +336,32 @@ public class BookingService {
             return;
         }
 
-        System.out.println("\n" + "═".repeat(60));
-        System.out.println("                DETAIL PEMESANAN");
-        System.out.println("═".repeat(60));
-        System.out.printf("ID Booking: %d%n", booking.getId());
-        System.out.printf("Nama: %s%n", booking.getCustomerName());
-        System.out.printf("Jadwal ID: %d%n", booking.getScheduleId());
-        System.out.printf("Kursi: %s%n", String.join(", ", booking.getSelectedSeats()));
-        System.out.printf("Total: Rp %,.0f%n", booking.getTotalPrice());
-        System.out.printf("Status: %s%n", booking.getStatus().getDisplayName());
-        System.out.println("═".repeat(60));
+        // Get schedule details
+        model.Schedule schedule = scheduleMapper.findById(booking.getScheduleId());
+        if (schedule == null) {
+            System.out.println("❌ Jadwal tidak ditemukan!");
+            return;
+        }
+
+        // Get film details
+        Film film = filmMapper.findById(schedule.getFilmId());
+        
+        System.out.println("\n" + "═".repeat(70));
+        System.out.println("                    DETAIL PEMESANAN");
+        System.out.println("═".repeat(70));
+        System.out.printf("ID Booking      : %d%n", booking.getId());
+        System.out.printf("Nama Customer   : %s%n", booking.getCustomerName());
+        if (film != null) {
+            System.out.printf("Film            : %s%n", film.getTitle());
+            System.out.printf("Genre           : %s%n", film.getGenre());
+        }
+        System.out.printf("Studio          : %s%n", schedule.getStudio());
+        System.out.printf("Tanggal Tayang  : %s%n", schedule.getDate());
+        System.out.printf("Jam Tayang      : %s%n", schedule.getTime());
+        System.out.printf("Kursi           : %s%n", String.join(", ", booking.getSelectedSeats()));
+        System.out.printf("Total           : Rp %,.0f%n", booking.getTotalPrice());
+        System.out.printf("Status          : %s%n", booking.getStatus().getDisplayName());
+        System.out.println("═".repeat(70));
     }
 
     private String truncate(String str, int maxLength) {
