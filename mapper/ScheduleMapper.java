@@ -386,4 +386,28 @@ public class ScheduleMapper {
         }
         return null;
     }
+
+    /**
+     * Get detailed schedule information including film title, studio, date, time, and price
+     * Used for displaying full booking details
+     */
+    public String getDetailedScheduleInfo(int scheduleId) {
+        String sql = "SELECT f.title, s.date, s.time, s.studio, s.price FROM schedule s JOIN film f ON s.film_id = f.id WHERE s.id = ?";
+        try (Connection conn = Database.connect();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, scheduleId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                String title = rs.getString("title");
+                String date = rs.getString("date");
+                String time = rs.getString("time");
+                String studio = rs.getString("studio");
+                double price = rs.getDouble("price");
+                return String.format("%s | %s %s | Studio %s | Rp %,.0f", title, date, time, studio, price);
+            }
+        } catch (Exception e) {
+            System.out.println("Ambil detail jadwal gagal: " + e.getMessage());
+        }
+        return null;
+    }
 }

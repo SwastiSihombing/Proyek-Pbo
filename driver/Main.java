@@ -244,38 +244,16 @@ public class Main {
         System.out.println(centerText("PEMESANAN KURSI TIKET BIOSKOP", 70));
         System.out.println("=".repeat(70));
 
-        bookingService.displayAllFilmsForCustomer();
-
-        System.out.print("Pilih ID Film: ");
-        int filmId = getIntInput("");
-
-        bookingService.displaySchedulesByFilm(filmId);
-
-        System.out.print("Pilih ID Jadwal: ");
-        int scheduleId = getIntInput("");
-
-        // Display seat grid
-        bookingService.displaySeatGrid(scheduleId);
-
-        System.out.print("\nNama Customer: ");
+        // Get customer name first
+        System.out.print("Masukkan Nama Anda: ");
         String customerName = input.nextLine();
 
-        System.out.print("Pilih kursi (contoh: A1, B3): ");
-        String seatNumber = input.nextLine().toUpperCase();
+        // Use the new processBooking method that supports multiple seats
+        Booking booking = bookingService.processBooking(1, customerName);
 
-        // Get schedule to get price
-        ScheduleMapper scheduleMapper = new ScheduleMapper();
-        Schedule schedule = scheduleMapper.findById(scheduleId);
-
-        if (schedule == null) {
-            System.err.println("Error: Jadwal tidak ditemukan!");
-            return;
-        }
-
-        // Book ticket
-        int bookingId = bookingService.bookTicket(customerName, scheduleId, seatNumber, schedule.getPrice());
-
-        if (bookingId > 0) {
+        if (booking != null && booking.getId() > 0) {
+            int bookingId = booking.getId();
+            
             // Display booking details
             bookingService.displayBooking(bookingId);
 

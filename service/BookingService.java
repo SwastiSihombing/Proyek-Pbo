@@ -38,7 +38,7 @@ public class BookingService {
      * Alur pemesanan tiket lengkap dari awal hingga akhir
      * 1. Pilih jadwal
      * 2. Lihat grid kursi
-     * 3. Pilih kursi
+     * 3. Pilih kursi (bisa lebih dari 1)
      * 4. Konfirmasi pemesanan
      * 5. Simpan ke database
      */
@@ -79,43 +79,70 @@ public class BookingService {
         System.out.println("\n🎬 VISUALISASI KURSI BIOSKOP:");
         Map<String, Boolean> seatStatus = seatMapper.getSeatStatusBySchedule(selectedScheduleId);
         
+        // Auto-create seats if they don't exist
         if (seatStatus.isEmpty()) {
-            System.out.println("[!] Kursi tidak ditemukan untuk jadwal ini.");
-            return null;
+            System.out.println("\n[i] Membuat kursi untuk jadwal ini...");
+            seatMapper.createSeatsForSchedule(selectedScheduleId);
+            seatStatus = seatMapper.getSeatStatusBySchedule(selectedScheduleId);
+            
+            if (seatStatus.isEmpty()) {
+                System.out.println("[!] Gagal membuat kursi untuk jadwal ini.");
+                return null;
+            }
+            System.out.println("[✓] Kursi berhasil dibuat!");
         }
 
-        // Tampilkan grid dengan keterangan
-        System.out.println("\n" + seatVisualizationUtil.generateSeatGrid(seatStatus));
-        System.out.println("\n📌 KETERANGAN:");
-        System.out.println("  ● = Kursi tersedia");
-        System.out.println("  ✗ = Kursi sudah dipesan");
-        System.out.println("  ✓ = Kursi yang Anda pilih");
+        // Step 3: Pilih kursi (bisa lebih dari 1)
+        List<String> selectedSeats = new ArrayList<>();
+        double pricePerSeat = scheduleMapper.getPriceByScheduleId(selectedScheduleId);
+        boolean addingSeats = true;
 
-        // Step 3: Validasi dan pilih kursi
-        System.out.print("\n🪑 PILIH KURSI (Contoh: A1, B3): ");
-        String selectedSeat = scanner.nextLine().trim().toUpperCase();
+        while (addingSeats) {
+            // Tampilkan grid dengan kursi yang sudah dipilih
+            SeatVisualizationUtil.displaySeatLayout(seatStatus, selectedSeats);
+            
+            System.out.print("🪑 PILIH KURSI (Contoh: A1, B3) atau 'selesai' untuk lanjut: ");
+            String input = scanner.nextLine().trim().toUpperCase();
 
-        if (!seatStatus.containsKey(selectedSeat)) {
-            System.out.println("[!] Nomor kursi tidak valid!");
-            return null;
+            if (input.equals("SELESAI")) {
+                if (selectedSeats.isEmpty()) {
+                    System.out.println("[!] Anda harus memilih minimal 1 kursi!");
+                    continue;
+                }
+                addingSeats = false;
+                break;
+            }
+
+            if (!seatStatus.containsKey(input)) {
+                System.out.println("[!] Nomor kursi tidak valid!");
+                continue;
+            }
+
+            if (seatStatus.get(input)) {
+                System.out.println("[!] Kursi " + input + " sudah dipesan! Pilih kursi lain.");
+                continue;
+            }
+
+            if (selectedSeats.contains(input)) {
+                System.out.println("[!] Kursi " + input + " sudah Anda pilih!");
+                continue;
+            }
+
+            selectedSeats.add(input);
+            System.out.println("✓ Kursi " + input + " berhasil dipilih.");
         }
 
-        if (seatStatus.get(selectedSeat)) {
-            System.out.println("[!] Kursi sudah dipesan! Silakan pilih kursi lain.");
-            return null;
-        }
-
-        // Step 4: Ambil harga dari schedule
-        double price = scheduleMapper.getPriceByScheduleId(selectedScheduleId);
-
-        // Step 5: Preview pemesanan
+        // Step 4: Preview pemesanan
         System.out.println("\n" + "=".repeat(60));
         System.out.println("        PREVIEW PEMESANAN");
         System.out.println("=".repeat(60));
         System.out.printf("Nama Customer: %s%n", customerName);
         System.out.printf("Jadwal: %s%n", scheduleMap.get(selectedScheduleId));
-        System.out.printf("Kursi: %s%n", selectedSeat);
-        System.out.printf("Harga: Rp %,.0f%n", price);
+        System.out.printf("Kursi Dipilih: %s%n", String.join(", ", selectedSeats));
+        System.out.printf("Jumlah Kursi: %d%n", selectedSeats.size());
+        double totalPrice = pricePerSeat * selectedSeats.size();
+        System.out.printf("Harga per Kursi: Rp %,.0f%n", pricePerSeat);
+        System.out.printf("Total Harga: Rp %,.0f%n", totalPrice);
         System.out.print("Lanjutkan pemesanan? (y/n): ");
         
         String confirm = scanner.nextLine().trim().toLowerCase();
@@ -124,22 +151,26 @@ public class BookingService {
             return null;
         }
 
-        // Step 6: Buat object Booking dan simpan ke database
+        // Step 5: Buat object Booking dan simpan ke database
         Booking booking = new Booking(customerId, customerName, selectedScheduleId);
-        booking.getSelectedSeats().add(selectedSeat);
-        booking.setTotalPrice(price);
+        for (String seat : selectedSeats) {
+            booking.getSelectedSeats().add(seat);
+        }
+        booking.setTotalPrice(totalPrice);
         booking.setStatus(Booking.BookingStatus.PENDING);
 
         int bookingId = bookingMapper.createBooking(booking);
         
         if (bookingId > 0) {
-            // Update status kursi di database
-            seatMapper.updateSeatStatus(selectedScheduleId, selectedSeat, true);
+            // Update status semua kursi yang dipilih di database
+            for (String seat : selectedSeats) {
+                seatMapper.updateSeatStatus(selectedScheduleId, seat, true);
+            }
             
             System.out.println("\n✅ PEMESANAN BERHASIL!");
             System.out.printf("   ID Booking: %d%n", bookingId);
-            System.out.printf("   Kursi: %s%n", selectedSeat);
-            System.out.printf("   Total: Rp %,.0f%n", price);
+            System.out.printf("   Kursi: %s%n", String.join(", ", selectedSeats));
+            System.out.printf("   Total: Rp %,.0f%n", totalPrice);
             
             booking.setId(bookingId);
             return booking;
@@ -290,16 +321,24 @@ public class BookingService {
             return;
         }
 
-        System.out.println("\n" + "═".repeat(60));
+        System.out.println("\n" + "═".repeat(70));
         System.out.println("                DETAIL PEMESANAN");
-        System.out.println("═".repeat(60));
+        System.out.println("═".repeat(70));
         System.out.printf("ID Booking: %d%n", booking.getId());
-        System.out.printf("Nama: %s%n", booking.getCustomerName());
-        System.out.printf("Jadwal ID: %d%n", booking.getScheduleId());
-        System.out.printf("Kursi: %s%n", String.join(", ", booking.getSelectedSeats()));
-        System.out.printf("Total: Rp %,.0f%n", booking.getTotalPrice());
+        System.out.printf("Nama Customer: %s%n", booking.getCustomerName());
+        
+        // Tampilkan detail jadwal dengan film, studio, tanggal, jam, dan harga
+        String scheduleDetails = scheduleMapper.getDetailedScheduleInfo(booking.getScheduleId());
+        if (scheduleDetails != null) {
+            System.out.printf("Detail Jadwal: %s%n", scheduleDetails);
+        } else {
+            System.out.printf("Jadwal ID: %d%n", booking.getScheduleId());
+        }
+        
+        System.out.printf("Kursi yang Dipesan: %s%n", String.join(", ", booking.getSelectedSeats()));
+        System.out.printf("Total Harga: Rp %,.0f%n", booking.getTotalPrice());
         System.out.printf("Status: %s%n", booking.getStatus().getDisplayName());
-        System.out.println("═".repeat(60));
+        System.out.println("═".repeat(70));
     }
 
     private String truncate(String str, int maxLength) {
