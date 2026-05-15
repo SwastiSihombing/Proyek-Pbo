@@ -1,33 +1,48 @@
 package model;
 
-public class Schedule {
-    private int id;
+import java.time.LocalDate;
+import java.time.LocalTime;
+
+/**
+ * Entity untuk representasi Jadwal Film di teater
+ * Memiliki informasi tentang film, waktu, tempat, dan harga tiket
+ */
+public class Schedule extends BaseEntity {
     private Film film;
-    private String date;
-    private String time;
+    private LocalDate date;
+    private LocalTime time;
     private String studio;
     private double price;
+    private int totalSeats;
+    private int availableSeats;
 
     public Schedule() {
+        super();
     }
 
-    public Schedule(int id, Film film, String date, String time, String studio, double price) {
-        this.id = id;
+    public Schedule(int id, Film film, LocalDate date, LocalTime time, String studio, double price) {
+        super(id);
         this.film = film;
         this.date = date;
         this.time = time;
         this.studio = studio;
         this.price = price;
+        this.totalSeats = 15; // 3 rows x 5 columns
+        this.availableSeats = 15;
     }
 
-    public int getId() {
-        return id;
+    public Schedule(Film film, LocalDate date, LocalTime time, String studio, double price) {
+        super();
+        this.film = film;
+        this.date = date;
+        this.time = time;
+        this.studio = studio;
+        this.price = price;
+        this.totalSeats = 15;
+        this.availableSeats = 15;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
+    // Getters and Setters
     public Film getFilm() {
         return film;
     }
@@ -36,19 +51,19 @@ public class Schedule {
         this.film = film;
     }
 
-    public String getDate() {
+    public LocalDate getDate() {
         return date;
     }
 
-    public void setDate(String date) {
+    public void setDate(LocalDate date) {
         this.date = date;
     }
 
-    public String getTime() {
+    public LocalTime getTime() {
         return time;
     }
 
-    public void setTime(String time) {
+    public void setTime(LocalTime time) {
         this.time = time;
     }
 
@@ -68,42 +83,36 @@ public class Schedule {
         this.price = price;
     }
 
+    public int getTotalSeats() {
+        return totalSeats;
+    }
+
+    public void setTotalSeats(int totalSeats) {
+        this.totalSeats = totalSeats;
+    }
+
+    public int getAvailableSeats() {
+        return availableSeats;
+    }
+
+    public void setAvailableSeats(int availableSeats) {
+        this.availableSeats = availableSeats;
+    }
+
+    public int getBookedSeats() {
+        return totalSeats - availableSeats;
+    }
+
     @Override
     public String toString() {
         return "Schedule{" +
                 "id=" + id +
                 ", film=" + film +
-                ", date='" + date + '\'' +
-                ", time='" + time + '\'' +
+                ", date=" + date +
+                ", time=" + time +
                 ", studio='" + studio + '\'' +
                 ", price=" + price +
+                ", availableSeats=" + availableSeats +
                 '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Schedule schedule = (Schedule) o;
-
-        if (id != schedule.id) return false;
-        if (Double.compare(schedule.price, price) != 0) return false;
-        if (film != null ? !film.equals(schedule.film) : schedule.film != null) return false;
-        if (date != null ? !date.equals(schedule.date) : schedule.date != null) return false;
-        if (time != null ? !time.equals(schedule.time) : schedule.time != null) return false;
-        return studio != null ? studio.equals(schedule.studio) : schedule.studio == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = id;
-        result = 31 * result + (film != null ? film.hashCode() : 0);
-        result = 31 * result + (date != null ? date.hashCode() : 0);
-        result = 31 * result + (time != null ? time.hashCode() : 0);
-        result = 31 * result + (studio != null ? studio.hashCode() : 0);
-        long temp = Double.doubleToLongBits(price);
-        result = 31 * result + (int) (temp ^ (temp >>> 32));
-        return result;
     }
 }

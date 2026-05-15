@@ -2,50 +2,41 @@ package model;
 
 import java.time.LocalDateTime;
 
-public class Payment {
-    private int id;
+/**
+ * Entity untuk representasi pembayaran
+ * Setiap booking dapat memiliki multiple payments atau 1 payment
+ */
+public class Payment extends BaseEntity {
     private int bookingId;
     private double amount;
-    private String paymentMethod; // QRIS, TRANSFER, E-WALLET
-    private String paymentReference;
-    private String status; // PENDING, COMPLETED, FAILED, CANCELLED
+    private PaymentMethod paymentMethod;
+    private PaymentStatus status;
+    private String paymentReference;  // Reference number dari payment gateway
     private LocalDateTime paymentDate;
 
     public Payment() {
+        super();
     }
 
-    public Payment(int bookingId, double amount, String paymentMethod) {
+    public Payment(int id, int bookingId, double amount, PaymentMethod paymentMethod) {
+        super(id);
         this.bookingId = bookingId;
         this.amount = amount;
         this.paymentMethod = paymentMethod;
-        this.status = "PENDING";
-        this.paymentDate = LocalDateTime.now();
+        this.status = PaymentStatus.PENDING;
+        this.paymentDate = null;
     }
 
-    public Payment(int bookingId, double amount, String paymentMethod, String paymentReference) {
-        this(bookingId, amount, paymentMethod);
-        this.paymentReference = paymentReference;
-    }
-
-    public Payment(int id, int bookingId, double amount, String paymentMethod, String paymentReference, String status, LocalDateTime paymentDate) {
-        this.id = id;
+    public Payment(int bookingId, double amount, PaymentMethod paymentMethod) {
+        super();
         this.bookingId = bookingId;
         this.amount = amount;
         this.paymentMethod = paymentMethod;
-        this.paymentReference = paymentReference;
-        this.status = status;
-        this.paymentDate = paymentDate;
+        this.status = PaymentStatus.PENDING;
+        this.paymentDate = null;
     }
 
     // Getters and Setters
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public int getBookingId() {
         return bookingId;
     }
@@ -62,12 +53,20 @@ public class Payment {
         this.amount = amount;
     }
 
-    public String getPaymentMethod() {
+    public PaymentMethod getPaymentMethod() {
         return paymentMethod;
     }
 
-    public void setPaymentMethod(String paymentMethod) {
+    public void setPaymentMethod(PaymentMethod paymentMethod) {
         this.paymentMethod = paymentMethod;
+    }
+
+    public PaymentStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(PaymentStatus status) {
+        this.status = status;
     }
 
     public String getPaymentReference() {
@@ -78,14 +77,6 @@ public class Payment {
         this.paymentReference = paymentReference;
     }
 
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
     public LocalDateTime getPaymentDate() {
         return paymentDate;
     }
@@ -94,15 +85,30 @@ public class Payment {
         this.paymentDate = paymentDate;
     }
 
+    /**
+     * Tandai pembayaran sebagai berhasil
+     */
+    public void markAsCompleted() {
+        this.status = PaymentStatus.COMPLETED;
+        this.paymentDate = LocalDateTime.now();
+    }
+
+    /**
+     * Tandai pembayaran sebagai gagal
+     */
+    public void markAsFailed() {
+        this.status = PaymentStatus.FAILED;
+    }
+
     @Override
     public String toString() {
         return "Payment{" +
                 "id=" + id +
                 ", bookingId=" + bookingId +
                 ", amount=" + amount +
-                ", paymentMethod='" + paymentMethod + '\'' +
+                ", paymentMethod=" + paymentMethod.getDescription() +
+                ", status=" + status.getDescription() +
                 ", paymentReference='" + paymentReference + '\'' +
-                ", status='" + status + '\'' +
                 ", paymentDate=" + paymentDate +
                 '}';
     }

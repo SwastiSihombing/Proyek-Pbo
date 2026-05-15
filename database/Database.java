@@ -22,6 +22,8 @@ public class Database {
     public static Connection connect() {
         try {
             Connection conn = DriverManager.getConnection(URL);
+            // Enable foreign keys for SQLite
+            conn.createStatement().execute("PRAGMA foreign_keys = ON");
             System.out.println("Koneksi ke database berhasil");
             return conn;
         } catch (Exception e) {
@@ -41,9 +43,18 @@ public class Database {
             
             System.out.println("Menginisialisasi database...");
 
+            // Drop tables to reset all data
+            try {
+                stmt.execute("DROP TABLE IF EXISTS seat");
+                stmt.execute("DROP TABLE IF EXISTS schedule");
+                stmt.execute("DROP TABLE IF EXISTS film");
+            } catch (Exception e) {
+                // Ignore if tables don't exist
+            }
+
             // Tabel Film
             stmt.execute("CREATE TABLE IF NOT EXISTS film (" +
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "id INTEGER PRIMARY KEY, " +
                     "title TEXT NOT NULL, " +
                     "genre TEXT, " +
                     "duration INTEGER" +
@@ -110,6 +121,26 @@ public class Database {
             if (message == null || !message.toLowerCase().contains("duplicate column")) {
                 System.err.println("Peringatan: gagal menambah kolom " + columnName + " pada tabel " + tableName);
             }
+        }
+    }
+
+    // Seeding data film awal
+    public static void seedingFilmData() {
+        try (Connection conn = connect();
+             Statement stmt = conn.createStatement()) {
+            
+            System.out.println("\nMenghapus data film lama...");
+            stmt.execute("DELETE FROM film");
+            
+            System.out.println("Menambahkan film baru...");
+            stmt.execute("INSERT INTO film(id, title, genre, duration) VALUES (1, 'Avengers Last Game', 'Action', 180)");
+            stmt.execute("INSERT INTO film(id, title, genre, duration) VALUES (2, 'Conjuring 3', 'Horror', 126)");
+            
+            System.out.println("Data film berhasil di-reset!");
+            
+        } catch (Exception e) {
+            System.err.println("Error: Seeding data gagal");
+            e.printStackTrace();
         }
     }
 }

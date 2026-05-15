@@ -17,11 +17,26 @@ public class BookingMapper {
 
             ResultSet rs = stmt.getGeneratedKeys();
             if (rs.next()) {
-                return rs.getInt(1);
+                int bookingId = rs.getInt(1);
+                // Update seat status to booked
+                updateSeatBooked(scheduleId, seat);
+                return bookingId;
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return -1;
+    }
+
+    private void updateSeatBooked(int scheduleId, String seatNumber) {
+        try (Connection conn = Database.getConnection()) {
+            String sql = "UPDATE seat SET is_booked = 1 WHERE schedule_id = ? AND seat_number = ?";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, scheduleId);
+            stmt.setString(2, seatNumber);
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            System.out.println("Update seat status gagal");
+        }
     }
 }

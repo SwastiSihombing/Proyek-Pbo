@@ -1,29 +1,37 @@
 package model;
 
-public class Seat {
-    private int id;
+/**
+ * Entity untuk representasi kursi di teater
+ * Dengan row (A,B,C) dan column (1-5) representation
+ */
+public class Seat extends BaseEntity {
     private int scheduleId;
-    private int seatNumber;
+    private String seatRow;      // A, B, C
+    private int seatColumn;      // 1-5
     private boolean isBooked;
+    private String bookedByCustomer; // Nama customer yang booking (nullable)
 
     public Seat() {
+        super();
     }
 
-    public Seat(int id, int scheduleId, int seatNumber, boolean isBooked) {
-        this.id = id;
+    public Seat(int id, int scheduleId, String seatRow, int seatColumn, boolean isBooked) {
+        super(id);
         this.scheduleId = scheduleId;
-        this.seatNumber = seatNumber;
+        this.seatRow = seatRow;
+        this.seatColumn = seatColumn;
         this.isBooked = isBooked;
     }
 
-    public int getId() {
-        return id;
+    public Seat(int scheduleId, String seatRow, int seatColumn) {
+        super();
+        this.scheduleId = scheduleId;
+        this.seatRow = seatRow;
+        this.seatColumn = seatColumn;
+        this.isBooked = false;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
+    // Getters and Setters
     public int getScheduleId() {
         return scheduleId;
     }
@@ -32,12 +40,24 @@ public class Seat {
         this.scheduleId = scheduleId;
     }
 
-    public int getSeatNumber() {
-        return seatNumber;
+    public String getSeatRow() {
+        return seatRow;
     }
 
-    public void setSeatNumber(int seatNumber) {
-        this.seatNumber = seatNumber;
+    public void setSeatRow(String seatRow) {
+        this.seatRow = seatRow;
+    }
+
+    public int getSeatColumn() {
+        return seatColumn;
+    }
+
+    public void setSeatColumn(int seatColumn) {
+        this.seatColumn = seatColumn;
+    }
+
+    public String getSeatNumber() {
+        return seatRow + seatColumn;
     }
 
     public boolean isBooked() {
@@ -48,35 +68,23 @@ public class Seat {
         isBooked = booked;
     }
 
+    public String getBookedByCustomer() {
+        return bookedByCustomer;
+    }
+
+    public void setBookedByCustomer(String bookedByCustomer) {
+        this.bookedByCustomer = bookedByCustomer;
+    }
+
     @Override
     public String toString() {
         return "Seat{" +
                 "id=" + id +
                 ", scheduleId=" + scheduleId +
-                ", seatNumber=" + seatNumber +
+                ", seatRow='" + seatRow + '\'' +
+                ", seatColumn=" + seatColumn +
                 ", isBooked=" + isBooked +
+                ", bookedByCustomer='" + bookedByCustomer + '\'' +
                 '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Seat seat = (Seat) o;
-
-        if (id != seat.id) return false;
-        if (scheduleId != seat.scheduleId) return false;
-        if (seatNumber != seat.seatNumber) return false;
-        return isBooked == seat.isBooked;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = id;
-        result = 31 * result + scheduleId;
-        result = 31 * result + seatNumber;
-        result = 31 * result + (isBooked ? 1 : 0);
-        return result;
     }
 }

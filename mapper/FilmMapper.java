@@ -42,4 +42,25 @@ public class FilmMapper {
         }
         return list;
     }
+
+    public Film findById(int id) {
+        try (Connection conn = Database.connect()) {
+            String sql = "SELECT * FROM film WHERE id = ?";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                Film f = new Film();
+                f.setId(rs.getInt("id"));
+                f.setTitle(rs.getString("title"));
+                f.setGenre(rs.getString("genre"));
+                f.setDuration(rs.getInt("duration"));
+                return f;
+            }
+        } catch (Exception e) {
+            System.err.println("[ERROR] Cari film gagal: " + e.getMessage());
+        }
+        return null;
+    }
 }

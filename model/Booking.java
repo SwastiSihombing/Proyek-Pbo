@@ -1,27 +1,52 @@
 package model;
 
-public class Booking {
-    private int id;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Entity untuk representasi pemesanan tiket
+ * Hanya menghandle seat selection, TIDAK termasuk payment
+ * Payment dihandle oleh Payment entity secara terpisah
+ */
+public class Booking extends BaseEntity {
+    private int customerId;
     private String customerName;
-    private Schedule schedule;
-    private int seatNumber;
+    private int scheduleId;
+    private List<String> selectedSeats;  // List untuk menyimpan seats (A1, A2, dst)
+    private double totalPrice;
+    private OrderStatus status;
 
     public Booking() {
+        super();
+        this.selectedSeats = new ArrayList<>();
+        this.status = OrderStatus.PENDING;
     }
 
-    public Booking(int id, String customerName, Schedule schedule, int seatNumber) {
-        this.id = id;
+    public Booking(int id, int customerId, String customerName, int scheduleId) {
+        super(id);
+        this.customerId = customerId;
         this.customerName = customerName;
-        this.schedule = schedule;
-        this.seatNumber = seatNumber;
+        this.scheduleId = scheduleId;
+        this.selectedSeats = new ArrayList<>();
+        this.status = OrderStatus.PENDING;
     }
 
-    public int getId() {
-        return id;
+    public Booking(int customerId, String customerName, int scheduleId) {
+        super();
+        this.customerId = customerId;
+        this.customerName = customerName;
+        this.scheduleId = scheduleId;
+        this.selectedSeats = new ArrayList<>();
+        this.status = OrderStatus.PENDING;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    // Getters and Setters
+    public int getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(int customerId) {
+        this.customerId = customerId;
     }
 
     public String getCustomerName() {
@@ -32,52 +57,62 @@ public class Booking {
         this.customerName = customerName;
     }
 
-    public Schedule getSchedule() {
-        return schedule;
+    public int getScheduleId() {
+        return scheduleId;
     }
 
-    public void setSchedule(Schedule schedule) {
-        this.schedule = schedule;
+    public void setScheduleId(int scheduleId) {
+        this.scheduleId = scheduleId;
     }
 
-    public int getSeatNumber() {
-        return seatNumber;
+    public List<String> getSelectedSeats() {
+        return selectedSeats;
     }
 
-    public void setSeatNumber(int seatNumber) {
-        this.seatNumber = seatNumber;
+    public void setSelectedSeats(List<String> selectedSeats) {
+        this.selectedSeats = selectedSeats;
+    }
+
+    public void addSeat(String seatNumber) {
+        if (!selectedSeats.contains(seatNumber)) {
+            selectedSeats.add(seatNumber);
+        }
+    }
+
+    public void removeSeat(String seatNumber) {
+        selectedSeats.remove(seatNumber);
+    }
+
+    public int getNumberOfSeats() {
+        return selectedSeats.size();
+    }
+
+    public double getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(double totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
+    public OrderStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(OrderStatus status) {
+        this.status = status;
     }
 
     @Override
     public String toString() {
         return "Booking{" +
                 "id=" + id +
+                ", customerId=" + customerId +
                 ", customerName='" + customerName + '\'' +
-                ", schedule=" + schedule +
-                ", seatNumber=" + seatNumber +
+                ", scheduleId=" + scheduleId +
+                ", selectedSeats=" + selectedSeats +
+                ", totalPrice=" + totalPrice +
+                ", status=" + status.getDescription() +
                 '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Booking booking = (Booking) o;
-
-        if (id != booking.id) return false;
-        if (seatNumber != booking.seatNumber) return false;
-        if (customerName != null ? !customerName.equals(booking.customerName) : booking.customerName != null)
-            return false;
-        return schedule != null ? schedule.equals(booking.schedule) : booking.schedule == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = id;
-        result = 31 * result + (customerName != null ? customerName.hashCode() : 0);
-        result = 31 * result + (schedule != null ? schedule.hashCode() : 0);
-        result = 31 * result + seatNumber;
-        return result;
     }
 }
