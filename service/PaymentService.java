@@ -45,19 +45,22 @@ public class PaymentService {
         int paymentId = paymentMapper.insert(payment);
 
         if (paymentId > 0) {
-            // Display payment info
-            displayPaymentInfo(booking, schedule, virtualAccount, method, amount);
+            // Display PENDING payment info
+            displayPendingPaymentInfo(booking, schedule, virtualAccount, method, amount);
 
-            // Simulate 5 seconds verification
-            simulatePaymentVerification();
+            // Update payment status to PROCESSING
+            paymentMapper.updateStatus(paymentId, PaymentStatus.PROCESSING);
+            
+            // Simulate 5 seconds verification with loading
+            simulatePaymentVerification(method);
 
-            // Update payment status to COMPLETED
-            paymentMapper.updateStatus(paymentId, PaymentStatus.COMPLETED);
+            // Update payment status to COMPLETED with payment date
+            paymentMapper.updateStatusAndDate(paymentId, PaymentStatus.COMPLETED, LocalDateTime.now());
 
-            // Display receipt
+            // Display success receipt
             displayReceipt(booking, schedule, virtualAccount, method, amount);
 
-            // Update booking status
+            // Update booking status to CONFIRMED
             booking.setStatus(Booking.BookingStatus.CONFIRMED);
             bookingMapper.update(booking);
         } else {
@@ -74,6 +77,51 @@ public class PaymentService {
             va.append(random.nextInt(10));
         }
         return va.toString();
+    }
+
+    /**
+     * Display PENDING payment information before verification
+     */
+    private void displayPendingPaymentInfo(Booking booking, Schedule schedule, String virtualAccount, PaymentMethod method, double amount) {
+        System.out.println("\n" + "╔" + "═".repeat(75) + "╗");
+        System.out.println("║" + centerText("STATUS PEMBAYARAN: MENUNGGU", 75) + "║");
+        System.out.println("╠" + "═".repeat(75) + "╣");
+        System.out.println("║" + centerText("DETAIL PEMESANAN", 75) + "║");
+        System.out.println("║" + " ".repeat(75) + "║");
+        System.out.printf("║  %-71s  ║\n", "Film              : " + (schedule != null ? schedule.getFilmTitle() : "N/A"));
+        System.out.printf("║  %-71s  ║\n", "Customer          : " + booking.getCustomerName());
+        System.out.printf("║  %-71s  ║\n", "Kursi             : " + booking.getSeatNumber());
+        System.out.printf("║  %-71s  ║\n", "Jadwal            : " + 
+            (schedule != null ? schedule.getDate() + " " + schedule.getTime() : "N/A"));
+        System.out.printf("║  %-71s  ║\n", "Studio            : " + (schedule != null ? schedule.getStudio() : "N/A"));
+        System.out.println("║" + " ".repeat(75) + "║");
+        System.out.println("╠" + "═".repeat(75) + "╣");
+        System.out.println("║" + centerText("DETAIL PEMBAYARAN", 75) + "║");
+        System.out.println("║" + " ".repeat(75) + "║");
+        System.out.printf("║  %-71s  ║\n", "Metode Pembayaran : " + method.getDisplayName());
+        System.out.printf("║  %-71s  ║\n", "Total Tagihan     : Rp" + String.format("%,d", (long)amount));
+        System.out.println("║" + " ".repeat(75) + "║");
+        System.out.println("╠" + "═".repeat(75) + "╣");
+        System.out.println("║" + centerText("INSTRUKSI PEMBAYARAN", 75) + "║");
+        System.out.println("║" + " ".repeat(75) + "║");
+        
+        if (method == PaymentMethod.TRANSFER) {
+            System.out.printf("║  %-71s  ║\n", "Nomor Virtual Account : " + virtualAccount);
+            System.out.printf("║  %-71s  ║\n", "Bank : Bank Transfer (Semua Bank)");
+        } else if (method == PaymentMethod.E_WALLET) {
+            System.out.printf("║  %-71s  ║\n", "E-Wallet Code : " + virtualAccount);
+            System.out.printf("║  %-71s  ║\n", "Platform : GCash / Grab Pay / OVO");
+        } else if (method == PaymentMethod.CASH) {
+            System.out.printf("║  %-71s  ║\n", "Silahkan setor tunai ke kasir bioskop");
+            System.out.printf("║  %-71s  ║\n", "Kode Referensi : " + virtualAccount);
+        } else if (method == PaymentMethod.CREDIT_CARD) {
+            System.out.printf("║  %-71s  ║\n", "Card Reference : " + virtualAccount);
+            System.out.printf("║  %-71s  ║\n", "Hubungi customer service untuk proses");
+        }
+        
+        System.out.println("║" + " ".repeat(75) + "║");
+        System.out.println("╚" + "═".repeat(75) + "╝");
+        System.out.println();
     }
 
     /**
@@ -98,26 +146,32 @@ public class PaymentService {
     /**
      * Simulate 5 seconds payment verification with loading animation
      */
-    private void simulatePaymentVerification() {
-        System.out.println("\n" + "┌" + "─".repeat(73) + "┐");
-        System.out.println("│" + centerText("Verifikasi Pembayaran Sedang Berlangsung...", 73) + "│");
-        System.out.println("└" + "─".repeat(73) + "┘");
+    private void simulatePaymentVerification(PaymentMethod method) {
+        System.out.println("╔" + "═".repeat(75) + "╗");
+        System.out.println("║" + centerText("STATUS PEMBAYARAN: SEDANG DIPROSES", 75) + "║");
+        System.out.println("║" + centerText("Mohon tunggu, sedang memverifikasi pembayaran Anda...", 75) + "║");
+        System.out.println("╚" + "═".repeat(75) + "╝\n");
 
         try {
             // Simulate 5 seconds with 5 iterations (each iteration = 1 second)
             for (int i = 1; i <= 5; i++) {
                 Thread.sleep(1000);
                 
-                // Display progress bar
-                System.out.print("  Status: [");
+                // Display progress bar with animation
+                System.out.print("\r  Verifikasi ");
                 for (int j = 0; j < i; j++) {
                     System.out.print("█");
                 }
                 for (int j = i; j < 5; j++) {
                     System.out.print("░");
                 }
-                System.out.println("] " + (i * 20) + "% - Tunggu sebentar...");
+                System.out.print(" " + (i * 20) + "% ");
+                
+                String[] statusText = {"Koneksi ke server...", "Validasi data...", "Proses transaksi...", "Konfirmasi pembayaran...", "Transaksi berhasil!"};
+                System.out.print(statusText[i - 1]);
+                System.out.flush();
             }
+            System.out.println("\n");
         } catch (InterruptedException e) {
             System.err.println("Error dalam verifikasi: " + e.getMessage());
         }
@@ -127,28 +181,52 @@ public class PaymentService {
      * Display payment receipt with border formatting
      */
     private void displayReceipt(Booking booking, Schedule schedule, String virtualAccount, PaymentMethod method, double amount) {
-        String border = "+" + "─".repeat(73) + "+";
-        String separator = "|" + " ".repeat(73) + "|";
+        String border = "╔" + "═".repeat(75) + "╗";
+        String endBorder = "╚" + "═".repeat(75) + "╝";
+        String separator = "╠" + "═".repeat(75) + "╣";
+        String line = "║" + " ".repeat(75) + "║";
 
-        System.out.println("\n" + border);
-        System.out.println("|" + centerText("STRUK PEMBAYARAN - TIKET BIOSKOP", 73) + "|");
-        System.out.println(separator);
-        System.out.printf("|  %-71s |\n", "Film: " + (schedule != null ? schedule.getFilmTitle() : "N/A"));
-        System.out.printf("|  %-71s |\n", "Customer: " + booking.getCustomerName());
-        System.out.printf("|  %-71s |\n", "Kursi: " + booking.getSeatNumber());
-        System.out.printf("|  %-71s |\n", "Tanggal: " + (schedule != null ? schedule.getDate() : "N/A"));
-        System.out.printf("|  %-71s |\n", "Jam: " + (schedule != null ? schedule.getTime() : "N/A"));
-        System.out.printf("|  %-71s |\n", "Studio: " + (schedule != null ? schedule.getStudio() : "N/A"));
-        System.out.println(separator);
-        System.out.printf("|  %-71s |\n", "Metode Pembayaran: " + method.getDisplayName());
-        System.out.printf("|  %-71s |\n", "Virtual Account: " + virtualAccount);
-        System.out.printf("|  %-71s |\n", "Tanggal Transaksi: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        System.out.println(separator);
-        System.out.printf("|  %-71s |\n", String.format("TOTAL: Rp%,.0f", amount));
-        System.out.println(separator);
-        System.out.println("|" + centerText("✓ PEMBAYARAN LUNAS", 73) + "|");
-        System.out.println("|" + centerText("Terima Kasih Telah Berbelanja", 73) + "|");
         System.out.println(border);
+        System.out.println("║" + centerText("STRUK PEMBAYARAN TIKET BIOSKOP", 75) + "║");
+        System.out.println(separator);
+        
+        // Detail Pemesanan
+        System.out.println("║" + centerText("DETAIL PEMESANAN", 75) + "║");
+        System.out.println(line);
+        System.out.printf("║  %-71s  ║\n", "ID Booking        : " + booking.getId());
+        System.out.printf("║  %-71s  ║\n", "Film              : " + (schedule != null ? schedule.getFilmTitle() : "N/A"));
+        System.out.printf("║  %-71s  ║\n", "Customer          : " + booking.getCustomerName());
+        System.out.printf("║  %-71s  ║\n", "Kursi             : " + booking.getSeatNumber());
+        System.out.printf("║  %-71s  ║\n", "Tanggal Tayang    : " + (schedule != null ? schedule.getDate() : "N/A"));
+        System.out.printf("║  %-71s  ║\n", "Jam Tayang        : " + (schedule != null ? schedule.getTime() : "N/A"));
+        System.out.printf("║  %-71s  ║\n", "Studio            : " + (schedule != null ? schedule.getStudio() : "N/A"));
+        System.out.println(line);
+        
+        // Detail Pembayaran
+        System.out.println("║" + centerText("DETAIL PEMBAYARAN", 75) + "║");
+        System.out.println(line);
+        System.out.printf("║  %-71s  ║\n", "Metode Pembayaran : " + method.getDisplayName());
+        System.out.printf("║  %-71s  ║\n", "Nomor Referensi   : " + virtualAccount);
+        System.out.printf("║  %-71s  ║\n", "Harga Tiket       : Rp" + String.format("%,d", (long)amount));
+        System.out.printf("║  %-71s  ║\n", "Pajak (0%)        : Rp0");
+        System.out.println(line);
+        System.out.printf("║  %-71s  ║\n", String.format("TOTAL PEMBAYARAN  : Rp%,d", (long)amount));
+        System.out.println(line);
+        
+        // Tanggal Transaksi
+        System.out.printf("║  %-71s  ║\n", "Tanggal Transaksi : " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        System.out.println(separator);
+        
+        // Status Pembayaran
+        System.out.println("║" + centerText("STATUS PEMBAYARAN: LUNAS ✓", 75) + "║");
+        System.out.println(line);
+        System.out.println("║" + centerText("Pembayaran telah berhasil diproses", 75) + "║");
+        System.out.println("║" + centerText("Silahkan tampilkan struk ini saat memasuki bioskop", 75) + "║");
+        System.out.println(line);
+        System.out.println("║" + centerText("Terima Kasih Telah Berbelanja", 75) + "║");
+        System.out.println("║" + centerText("Semoga Anda menikmati pengalaman menonton yang menyenangkan", 75) + "║");
+        System.out.println(endBorder);
+        System.out.println();
     }
 
     /**
