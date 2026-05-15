@@ -244,6 +244,7 @@ public class Main {
         System.out.println(centerText("PEMESANAN KURSI TIKET BIOSKOP", 70));
         System.out.println("=".repeat(70));
 
+<<<<<<< HEAD
         // Get customer name first
         System.out.print("Masukkan Nama Anda: ");
         String customerName = input.nextLine();
@@ -254,6 +255,118 @@ public class Main {
         if (booking != null && booking.getId() > 0) {
             int bookingId = booking.getId();
             
+=======
+        bookingService.displayAllFilmsForCustomer();
+
+        System.out.print("Pilih ID Film: ");
+        int filmId = getIntInput("");
+
+        bookingService.displaySchedulesByFilm(filmId);
+
+        System.out.print("Pilih ID Jadwal: ");
+        int scheduleId = getIntInput("");
+
+        // Get schedule to get price
+        ScheduleMapper scheduleMapper = new ScheduleMapper();
+        Schedule schedule = scheduleMapper.findById(scheduleId);
+
+        if (schedule == null) {
+            System.err.println("Error: Jadwal tidak ditemukan!");
+            return;
+        }
+
+        // Display seat grid
+        bookingService.displaySeatGrid(scheduleId);
+
+        System.out.print("\nNama Customer: ");
+        String customerName = input.nextLine();
+
+        // Multiple seat selection
+        java.util.List<String> selectedSeats = new java.util.ArrayList<>();
+        java.util.Map<String, Boolean> seatStatus = new java.util.HashMap<>();
+        boolean selectingSeats = true;
+        
+        // Initialize seat status
+        SeatMapper seatMapper = new SeatMapper();
+        seatStatus = seatMapper.getSeatStatusBySchedule(scheduleId);
+
+        while (selectingSeats) {
+            // Show current selected seats
+            if (!selectedSeats.isEmpty()) {
+                System.out.println("\n" + "─".repeat(70));
+                System.out.println("Kursi yang sudah dipilih: " + String.join(", ", selectedSeats));
+                System.out.println("Total harga: Rp " + String.format("%,.0f", schedule.getPrice() * selectedSeats.size()));
+                System.out.println("─".repeat(70));
+            }
+
+            // Show seat visualization
+            System.out.println("\n🎬 VISUALISASI KURSI BIOSKOP (Kursi pilihan Anda ditandai dengan ✓):");
+            SeatVisualizationUtil.displaySeatLayout(seatStatus, selectedSeats);
+
+            System.out.print("Pilih kursi (contoh: A1, B3) atau ketik 'selesai' untuk melanjutkan: ");
+            String input_seat = input.nextLine().trim().toUpperCase();
+
+            // Check if user wants to finish
+            if (input_seat.equalsIgnoreCase("SELESAI") || input_seat.equalsIgnoreCase("DONE")) {
+                if (selectedSeats.isEmpty()) {
+                    System.out.println("[!] Anda harus memilih minimal 1 kursi!");
+                    continue;
+                }
+                selectingSeats = false;
+                break;
+            }
+
+            // Validate seat
+            if (!seatStatus.containsKey(input_seat)) {
+                System.out.println("[!] Nomor kursi tidak valid! Gunakan format seperti A1, B3, dll.");
+                continue;
+            }
+
+            // Check if already booked
+            if (seatStatus.get(input_seat)) {
+                System.out.println("[!] Kursi " + input_seat + " sudah dipesan. Silakan pilih kursi lain.");
+                continue;
+            }
+
+            // Check if already selected in this booking
+            if (selectedSeats.contains(input_seat)) {
+                System.out.println("[!] Kursi " + input_seat + " sudah Anda pilih. Silakan pilih kursi lain.");
+                continue;
+            }
+
+            // Add selected seat
+            selectedSeats.add(input_seat);
+            System.out.println("✓ Kursi " + input_seat + " berhasil dipilih!");
+        }
+
+        if (selectedSeats.isEmpty()) {
+            System.out.println("[!] Tidak ada kursi yang dipilih. Pemesanan dibatalkan.");
+            return;
+        }
+
+        // Preview pemesanan
+        double totalPrice = schedule.getPrice() * selectedSeats.size();
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println(centerText("PREVIEW PEMESANAN", 70));
+        System.out.println("=".repeat(70));
+        System.out.printf("Nama Customer   : %s%n", customerName);
+        System.out.printf("Jumlah Kursi    : %d%n", selectedSeats.size());
+        System.out.printf("Kursi           : %s%n", String.join(", ", selectedSeats));
+        System.out.printf("Harga per kursi : Rp %,.0f%n", schedule.getPrice());
+        System.out.printf("Total Harga     : Rp %,.0f%n", totalPrice);
+        System.out.print("Lanjutkan pemesanan? (y/n): ");
+        
+        String confirm = input.nextLine().trim().toLowerCase();
+        if (!confirm.equals("y")) {
+            System.out.println("[!] Pemesanan dibatalkan.");
+            return;
+        }
+
+        // Book tickets
+        int bookingId = bookingService.bookMultipleSeats(customerName, scheduleId, selectedSeats, totalPrice);
+
+        if (bookingId > 0) {
+>>>>>>> 26b4fe9b6bcdc3b447f646aac7e8f00d36ac7e4f
             // Display booking details
             bookingService.displayBooking(bookingId);
 
