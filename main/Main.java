@@ -275,11 +275,11 @@ public class Main {
             
             int paymentChoice = getIntInput("");
             PaymentMethod method = switch (paymentChoice) {
-                case 1 -> PaymentMethod.TRANSFER_BANK;
+                case 1 -> PaymentMethod.TRANSFER;
                 case 2 -> PaymentMethod.E_WALLET;
                 case 3 -> PaymentMethod.CASH;
                 case 4 -> PaymentMethod.CREDIT_CARD;
-                default -> PaymentMethod.TRANSFER_BANK;
+                default -> PaymentMethod.TRANSFER;
             };
 
             // Process payment

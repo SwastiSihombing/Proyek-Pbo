@@ -1,6 +1,6 @@
 compile :
 	mkdir -p bin
-	javac -d bin -cp "lib/*" database/*.java model/*.java mapper/*.java main/*.java
+	javac -d bin -cp "lib/*" database/*.java model/*.java mapper/*.java service/*.java main/*.java
 
 run : compile
 	java -cp "bin;lib/*" main.Main
